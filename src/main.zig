@@ -48,17 +48,6 @@ pub fn launchCLI() !void {
                         },
                     },
                     cli.Command{
-                        .name = "x",
-                        .description = cli.Description{
-                            .one_line = "exec in tmp dir",
-                        },
-                        .target = cli.CommandTarget{
-                            .action = cli.CommandAction{
-                                .exec = ttm.exec,
-                            },
-                        },
-                    },
-                    cli.Command{
                         .name = "pin",
                         .description = cli.Description{
                             .one_line = "rename and keep tmp dir",

@@ -3,7 +3,6 @@ const pkgregistry = @import("pkg/registry.zig");
 const pkgtmpdir = @import("pkg/tmpdir.zig");
 const pkgshell = @import("pkg/shell.zig");
 const pkgpinprompt = @import("pkg/pinprompt.zig");
-const pkgexec = @import("pkg/exec.zig");
 const pkglist = @import("pkg/list.zig");
 const pkgprune = @import("pkg/prune.zig");
 
@@ -32,27 +31,6 @@ pub fn workInTmp() !void {
     // start shell
     try pkgshell.start(tmpdir.path);
     try pkgpinprompt.startPinPrompt(allocator, tmpdir.dirName);
-}
-
-pub fn exec() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
-
-    const action = try pkgexec.exec(allocator);
-    var tmpdir = action.tmpdir;
-
-    if (std.mem.eql(u8, action.name, "")) {
-        return;
-    }
-    if (std.mem.eql(u8, action.name, "continue")) {
-        std.debug.print("* continue: {s}\n", .{tmpdir.dirName});
-        try pkgshell.start(tmpdir.path);
-        if (tmpdir.isArchived()) {
-            try pkgpinprompt.startPinPrompt(allocator, tmpdir.dirName);
-        }
-        return;
-    }
 }
 
 pub fn list() !void {
