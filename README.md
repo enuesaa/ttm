@@ -14,7 +14,6 @@ A CLI tool to manage tmp dirs for throwaway work
 
 COMMANDS:
   ls      list tmp dirs
-  x       exec in tmp dir
   pin     rename and keep tmp dir
   rm      remove tmp dir
   prune   remove archived tmp dirs
@@ -70,3 +69,6 @@ preexec() {
   echo "${fmt_date} \"${PWD}\" $1" >> ~/.config/zsh-full-$(date +'%Y-%m-%d').log
 }
 ```
+
+- ファイル移動を主軸に考えなおそうかな
+- tmp dir を作っても仕方ない気がしてきた
