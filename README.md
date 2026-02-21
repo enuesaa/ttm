@@ -65,11 +65,10 @@ zig build test
 ファイル移動を主軸に考えなおす
 
 ```bash
-ttm # start session. move to default dir. and exit.
-ttm tmp # move to tmp dir. ローカルに同じ名前のディレクトリがあるときどうするか
-ttm ../ # move to parent dir
-ttm . # start session in current dir
-ttm --archive # これだけ浮いているのでなんとかしたい
+ttm    # start session. move to default dir. and exit.
+ttm t  # move to tmp dir
+ttm .  # move to current dir
+ttm .. # move to parent dir
 ```
 
 設定ファイル
@@ -77,12 +76,17 @@ ttm --archive # これだけ浮いているのでなんとかしたい
 ```yaml
 paths:
   default:
-    path: $HOME/repos # ttm cd コマンドでここに移動するイメージ
-  tmp:
-    path: $HOME/tmp # ttm cd tmp コマンドでここに移動するイメージ
+    path: $HOME/repos # ttm コマンドでここに移動するイメージ
+  t:
+    path: $HOME/tmp # ttm t コマンドでここに移動するイメージ
     archive: true # zip に固めて七日間保存するイメージ
-    archiveTiming: in a day
     archiveDays: 7
+  tmp:
+    path: $HOME/tmp
+  .:
+    path: $PWD
+  ..:
+    path: ../$PWD
 ```
 
 こんな感じでshellのpromptを変えられる
