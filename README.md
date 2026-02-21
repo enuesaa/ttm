@@ -66,7 +66,7 @@ zig build test
 
 ```bash
 ttm    # start session. move to default dir. and exit.
-ttm t  # move to tmp dir
+ttm @  # move to ~/tmp dir
 ttm .  # move to current dir
 ttm .. # move to parent dir
 ```
@@ -77,16 +77,19 @@ ttm .. # move to parent dir
 paths:
   default:
     path: $HOME/repos # ttm コマンドでここに移動するイメージ
-  t:
+  @:
     path: $HOME/tmp # ttm t コマンドでここに移動するイメージ
     archive: true # zip に固めて七日間保存するイメージ
-    archiveDays: 7
+    envs:
+      AA: bb
   tmp:
     path: $HOME/tmp
   .:
     path: $PWD
   ..:
     path: ../$PWD
+
+archiveDays: 7
 ```
 
 こんな感じでshellのpromptを変えられる
@@ -112,4 +115,29 @@ completion
 ➜ compdef _foo_completion foo
 ~/tmp
 ➜ foo restart
+```
+
+samples
+```bash
+ttm() {
+  case "$1" in
+    "" )
+      cd ~ || return
+      ;;
+    "@" )
+      cd ~/tmp || return
+      ;;
+    "." )
+      cd . || return
+      ;;
+    ".." )
+      # 親ディレクトリへ
+      cd .. || return
+      ;;
+    * )
+      echo "ttm: unknown argument '$1'" >&2
+      return 1
+      ;;
+  esac
+}
 ```
