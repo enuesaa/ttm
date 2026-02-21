@@ -65,9 +65,10 @@ zig build test
 ファイル移動を主軸に考えなおす
 
 ```bash
-ttm # move to default dir
-ttm tmp # move to tmp dir
-ttm -i # 一瞬だけ別のディレクトリに行って、そのまま返ってくる
+ttm # start session. move to default dir. and exit.
+ttm tmp # move to tmp dir. ローカルに同じ名前のディレクトリがあるときどうするか
+ttm ../ # move to parent dir
+ttm . # start session in current dir
 ttm --archive # これだけ浮いているのでなんとかしたい
 ```
 
@@ -85,7 +86,10 @@ paths:
 ```
 
 こんな感じでshellのpromptを変えられる
-`PROMPT="%F{yellow}[ttm]%f %~ $ "`
+```
+PROMPT="%F{yellow}[ttm]%f %~ $ "
+PS1="[ttm] $PS1"
+```
 
 completion
 ```bash
