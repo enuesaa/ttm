@@ -72,3 +72,14 @@ preexec() {
 
 - ファイル移動を主軸に考えなおそうかな
 - tmp dir を作っても仕方ない気がしてきた
+
+```yaml
+paths:
+  default:
+    path: $HOME/repos # ttm cd コマンドでここに移動するイメージ
+  tmp:
+    path: $HOME/tmp # ttm cd tmp コマンドでここに移動するイメージ
+    archive: true # zip に固めて七日間保存するイメージ
+    archiveTiming: in a day
+    archiveDays: 7
+```
