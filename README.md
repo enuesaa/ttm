@@ -61,17 +61,17 @@ zig build test
 ```
 
 ## Feature Plans
-- 履歴を取りたい
 
-```zsh
-preexec() {
-  local fmt_date="$(date +'%Y-%m-%d.%H:%M:%S')"
-  echo "${fmt_date} \"${PWD}\" $1" >> ~/.config/zsh-full-$(date +'%Y-%m-%d').log
-}
+ファイル移動を主軸に考えなおす
+
+```bash
+ttm # move to default dir
+ttm tmp # move to tmp dir
+ttm -i # 一瞬だけ別のディレクトリに行って、そのまま返ってくる
+ttm --archive # これだけ浮いているのでなんとかしたい
 ```
 
-- ファイル移動を主軸に考えなおそうかな
-- tmp dir を作っても仕方ない気がしてきた
+設定ファイル
 
 ```yaml
 paths:
