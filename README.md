@@ -83,3 +83,6 @@ paths:
     archiveTiming: in a day
     archiveDays: 7
 ```
+
+こんな感じでshellのpromptを変えられる
+`PROMPT="%F{yellow}[ttm]%f %~ $ "`
