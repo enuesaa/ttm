@@ -86,3 +86,22 @@ paths:
 
 こんな感じでshellのpromptを変えられる
 `PROMPT="%F{yellow}[ttm]%f %~ $ "`
+
+completion
+```bash
+➜ _foo_completion() {
+  local -a subcmds
+  subcmds=(
+    start
+    stop
+    restart
+    status
+  )
+
+  compadd -- $subcmds
+}
+~/tmp
+➜ compdef _foo_completion foo
+~/tmp
+➜ foo restart
+```
