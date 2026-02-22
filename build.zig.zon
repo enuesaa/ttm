@@ -20,6 +20,10 @@
             .url = "git+https://github.com/sam701/zig-toml.git#cf50bd59c6276fb2b6d34b8d71d35486eecc719c",
             .hash = "toml-0.3.0-bV14Bd-EAQBKoXhpYft303BtA2vgLNlxntUCIWgRUl46",
         },
+        .ymlz = .{
+            .url = "https://github.com/pwbh/ymlz/archive/refs/tags/0.6.0.tar.gz",
+            .hash = "ymlz-0.5.0-TG82aXqrAAC-NtiqbYQC2cNo4Qr9L9LDKEKMYRjtK6vT",
+        },
     },
     .paths = .{
         "build.zig",

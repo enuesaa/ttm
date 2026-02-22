@@ -1,5 +1,5 @@
 const std = @import("std");
-const toml = @import("toml");
+const Ymlz = @import("ymlz").Ymlz;
 
 fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
     var env = try std.process.getEnvMap(allocator);
@@ -39,7 +39,7 @@ pub fn make(allocator: std.mem.Allocator) !void {
 pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
     const registryPath = try getRegistryPath(allocator);
     defer allocator.free(registryPath);
-    return try std.fs.path.join(allocator, &.{ registryPath, "config.toml" });
+    return try std.fs.path.join(allocator, &.{ registryPath, "config.yml" });
 }
 
 const Config = struct {
@@ -50,12 +50,9 @@ pub fn getConfig(allocator: std.mem.Allocator) !void {
     const configPath = try getConfigPath(allocator);
     const source = try std.fs.cwd().readFileAlloc(allocator, configPath, 1024 * 1024);
 
-    var parser = toml.Parser(Config).init(allocator);
-    defer parser.deinit();
+    var ymlz = try Ymlz(Config).init(allocator);
+    const config = try ymlz.loadRaw(source);
+    defer ymlz.deinit(config);
 
-    var result = try parser.parseString(source);
-    defer result.deinit();
-
-    const config = result.value;
     std.debug.print("a: {s}\n", .{config.path});
 }
