@@ -14,14 +14,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    const yaml = b.dependency("yaml", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    const toml = b.dependency("toml", .{
-        .target = target,
-        .optimize = optimize,
-    });
     const ymlz = b.dependency("ymlz", .{
         .target = target,
         .optimize = optimize,
@@ -33,8 +25,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .imports = &.{
             .{ .name = "vaxis", .module = vaxis.module("vaxis") },
-            .{ .name = "yaml", .module = yaml.module("yaml") },
-            .{ .name = "toml", .module = toml.module("toml") },
             .{ .name = "ymlz", .module = ymlz.module("root") },
         },
     });

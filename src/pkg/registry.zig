@@ -43,16 +43,23 @@ pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
 }
 
 const Config = struct {
-    path: []const u8,
+    paths: struct {
+        default: struct {
+            path: []const u8,
+        },
+    },
+    // archiveDays: i32, // TODO: optional フィールドを持てるか怪しい
 };
 
 pub fn getConfig(allocator: std.mem.Allocator) !void {
     const configPath = try getConfigPath(allocator);
-    const source = try std.fs.cwd().readFileAlloc(allocator, configPath, 1024 * 1024);
+    defer allocator.free(configPath);
+    const configRaw = try std.fs.cwd().readFileAlloc(allocator, configPath, 1024 * 1024);
+    defer allocator.free(configRaw);
 
     var ymlz = try Ymlz(Config).init(allocator);
-    const config = try ymlz.loadRaw(source);
+    const config = try ymlz.loadRaw(configRaw);
     defer ymlz.deinit(config);
 
-    std.debug.print("a: {s}\n", .{config.path});
+    std.debug.print("a: {}\n", .{config});
 }
