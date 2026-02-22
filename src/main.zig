@@ -103,6 +103,26 @@ pub fn launchCLI() !void {
                             },
                         },
                     },
+                    cli.Command{
+                        .name = "cd",
+                        .description = cli.Description{
+                            .one_line = "cd",
+                        },
+                        .target = cli.CommandTarget{
+                            .action = cli.CommandAction{
+                                .positional_args = cli.PositionalArgs{
+                                    .required = try runner.allocPositionalArgs(&.{
+                                        .{
+                                            .name = "to",
+                                            .help = "to dir name",
+                                            .value_ref = runner.mkRef(&ttm.cliargs.cdTo),
+                                        },
+                                    }),
+                                },
+                                .exec = ttm.cd,
+                            },
+                        },
+                    },
                 }),
             },
         },
@@ -113,5 +133,6 @@ pub fn launchCLI() !void {
     defer allocator.free(ttm.cliargs.removeDir);
     defer allocator.free(ttm.cliargs.pinFrom);
     defer allocator.free(ttm.cliargs.pinTo);
+    defer allocator.free(ttm.cliargs.cdTo);
     try runner.run(&app);
 }
