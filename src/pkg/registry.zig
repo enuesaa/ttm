@@ -42,6 +42,21 @@ pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
     return try std.fs.path.join(allocator, &.{ registryPath, "config.yml" });
 }
 
+fn startShell(allocator: std.mem.Allocator, workdir: std.fs.Dir) !void {
+    const argv = &[_][]const u8{"zsh"};
+
+    var child = std.process.Child.init(argv, allocator);
+    child.cwd_dir = workdir;
+
+    var env = try std.process.getEnvMap(allocator);
+    try env.put("AAA", "bbb");
+    try env.put("PROMPT", "a");
+    defer env.deinit();
+    child.env_map = &env;
+
+    _ = try child.spawnAndWait();
+}
+
 const Config = struct {
     paths: struct {
         default: struct {
@@ -65,4 +80,9 @@ pub fn runcd(allocator: std.mem.Allocator, to: []const u8) !void {
     const config = try ymlz.loadRaw(configRaw);
     defer ymlz.deinit(config);
     std.debug.print("aa {s}", .{config.paths.default.path});
+
+    if (std.mem.eql(u8, to, "default")) {
+        const workdir = try std.fs.openDirAbsolute(config.paths.default.path, .{});
+        try startShell(allocator, workdir);
+    }
 }
