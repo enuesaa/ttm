@@ -12,6 +12,10 @@
             .url = "git+https://github.com/rockorager/libvaxis.git#cfa6311448755cf18684c09697d20b7a7622e578",
             .hash = "vaxis-0.5.1-BWNV_IcuCQCjrYTHNe3-ArhtpwLzRfgI2mBu0yKT7IZl",
         },
+        .yaml = .{
+            .url = "https://github.com/kubkon/zig-yaml/archive/refs/tags/0.2.0.tar.gz",
+            .hash = "zig_yaml-0.2.0-C1161pmrAgC_rL9WzjvgNg7HnmyAMwHsG3Sre0F4haPI",
+        },
     },
     .paths = .{
         "build.zig",

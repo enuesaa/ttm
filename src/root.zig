@@ -78,6 +78,7 @@ pub fn pin() !void {
 pub fn cd() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
-    // const allocator = gpa.allocator();
+    const allocator = gpa.allocator();
     std.debug.print("hello cd {s}\n", .{cliargs.cdTo});
+    try pkgregistry.getConfig(allocator);
 }

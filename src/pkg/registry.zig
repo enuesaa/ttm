@@ -1,4 +1,5 @@
 const std = @import("std");
+const Yaml = @import("yaml").Yaml;
 
 fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
     var env = try std.process.getEnvMap(allocator);
@@ -33,4 +34,30 @@ pub fn make(allocator: std.mem.Allocator) !void {
         return;
     }
     try makeRegistry(allocator);
+}
+
+pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
+    const registryPath = try getRegistryPath(allocator);
+    defer allocator.free(registryPath);
+    return try std.fs.path.join(allocator, &.{ registryPath, "config.yml" });
+}
+
+pub fn getConfig(allocator: std.mem.Allocator) !void {
+    // const configPath = try getConfigPath(allocator);
+    // const source = try std.fs.cwd().readFileAlloc(allocator, configPath, 1024 * 1024);
+    const Simple = struct {
+        nested: struct {
+            a: []const u8,
+        },
+    };
+    const source =
+        \\nested:
+        \\  a: one
+    ;
+    defer allocator.free(source);
+    var yaml: Yaml = .{ .source = source };
+    try yaml.load(allocator);
+    defer yaml.deinit(allocator);
+    const config = try yaml.parse(allocator, Simple);
+    std.debug.print("hello {s}", .{config.nested.a});
 }
