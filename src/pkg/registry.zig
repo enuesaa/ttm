@@ -50,7 +50,7 @@ fn startShell(allocator: std.mem.Allocator, workdir: std.fs.Dir) !void {
 
     var env = try std.process.getEnvMap(allocator);
     try env.put("AAA", "bbb");
-    try env.put("PROMPT", "a");
+    try env.put("TTM", "true");
     defer env.deinit();
     child.env_map = &env;
 
@@ -69,8 +69,6 @@ const Config = struct {
 };
 
 pub fn runcd(allocator: std.mem.Allocator, to: []const u8) !void {
-    std.debug.print("hello cd {s}\n", .{to});
-
     const configPath = try getConfigPath(allocator);
     defer allocator.free(configPath);
     const configRaw = try std.fs.cwd().readFileAlloc(allocator, configPath, 1024 * 1024);
