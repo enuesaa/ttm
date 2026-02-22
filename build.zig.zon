@@ -16,6 +16,10 @@
             .url = "https://github.com/kubkon/zig-yaml/archive/refs/tags/0.2.0.tar.gz",
             .hash = "zig_yaml-0.2.0-C1161pmrAgC_rL9WzjvgNg7HnmyAMwHsG3Sre0F4haPI",
         },
+        .toml = .{
+            .url = "git+https://github.com/sam701/zig-toml.git#cf50bd59c6276fb2b6d34b8d71d35486eecc719c",
+            .hash = "toml-0.3.0-bV14Bd-EAQBKoXhpYft303BtA2vgLNlxntUCIWgRUl46",
+        },
     },
     .paths = .{
         "build.zig",
