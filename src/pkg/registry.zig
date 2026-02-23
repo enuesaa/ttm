@@ -1,5 +1,4 @@
 const std = @import("std");
-const Ymlz = @import("ymlz").Ymlz;
 
 fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
     var env = try std.process.getEnvMap(allocator);
@@ -39,7 +38,7 @@ pub fn make(allocator: std.mem.Allocator) !void {
 pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
     const registryPath = try getRegistryPath(allocator);
     defer allocator.free(registryPath);
-    return try std.fs.path.join(allocator, &.{ registryPath, "config.yml" });
+    return try std.fs.path.join(allocator, &.{ registryPath, "config.json" });
 }
 
 fn startShell(allocator: std.mem.Allocator, workdir: std.fs.Dir) !void {
@@ -57,15 +56,13 @@ fn startShell(allocator: std.mem.Allocator, workdir: std.fs.Dir) !void {
     _ = try child.spawnAndWait();
 }
 
+const Path = struct {
+    path: []const u8,
+    archive: bool = false,
+};
+
 const Config = struct {
-    paths: struct {
-        default: struct {
-            path: []const u8,
-        },
-        tmp: struct {
-            path: []const u8,
-        },
-    },
+    paths: std.json.Value,
 };
 
 pub fn runcd(allocator: std.mem.Allocator, to: []const u8) !void {
@@ -74,13 +71,14 @@ pub fn runcd(allocator: std.mem.Allocator, to: []const u8) !void {
     const configRaw = try std.fs.cwd().readFileAlloc(allocator, configPath, 1024 * 1024);
     defer allocator.free(configRaw);
 
-    var ymlz = try Ymlz(Config).init(allocator);
-    const config = try ymlz.loadRaw(configRaw);
-    defer ymlz.deinit(config);
-    std.debug.print("aa {s}", .{config.paths.default.path});
+    var parsed = try std.json.parseFromSlice(Config, allocator, configRaw, .{});
+    defer parsed.deinit();
+    const config = parsed.value;
+
+    std.debug.print("aa {}", .{config});
 
     if (std.mem.eql(u8, to, "default")) {
-        const workdir = try std.fs.openDirAbsolute(config.paths.default.path, .{});
-        try startShell(allocator, workdir);
+        // const workdir = try std.fs.openDirAbsolute(config.paths.default.path, .{});
+        // try startShell(allocator, workdir);
     }
 }

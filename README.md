@@ -92,6 +92,19 @@ paths:
 archiveDays: 7
 ```
 
+```json
+{
+  "paths": {
+    "default": {
+      "path": "$HOME/repos"
+    },
+    "@": {
+      "path": "$HOME/tmp"
+    }
+  }
+}
+```
+
 こんな感じでshellのpromptを変えられる
 ```
 PROMPT="%F{yellow}[ttm]%f %~ $ "
