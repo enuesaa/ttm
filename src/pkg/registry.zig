@@ -61,8 +61,17 @@ const Path = struct {
     archive: bool = false,
 };
 
+// 一度にparseできないので一旦こうする
 const Config = struct {
     paths: std.json.Value,
+};
+
+const ConfigReal = struct {
+    paths: std.StringHashMap(Path),
+
+    pub fn deinit(self: *ConfigReal) void {
+        self.paths.deinit();
+    }
 };
 
 pub fn runcd(allocator: std.mem.Allocator, to: []const u8) !void {
@@ -73,12 +82,32 @@ pub fn runcd(allocator: std.mem.Allocator, to: []const u8) !void {
 
     var parsed = try std.json.parseFromSlice(Config, allocator, configRaw, .{});
     defer parsed.deinit();
-    const config = parsed.value;
 
-    std.debug.print("aa {}", .{config});
+    const root = parsed.value;
+    const paths_obj = root.paths.object;
+
+    var paths = std.StringHashMap(Path).init(allocator);
+
+    var it = paths_obj.iterator();
+    while (it.next()) |entry| {
+        const name = entry.key_ptr.*;
+        const obj = entry.value_ptr.*.object;
+
+        const p = Path{
+            .path = obj.get("path").?.string,
+            .archive = if (obj.get("archive")) |v| v.bool else false,
+        };
+        try paths.put(name, p);
+    }
+    var config = ConfigReal{
+        .paths = paths,
+    };
+    defer config.deinit();
+
+    std.debug.print("defaultPath: {s}", .{config.paths.get("default").?.path});
 
     if (std.mem.eql(u8, to, "default")) {
-        // const workdir = try std.fs.openDirAbsolute(config.paths.default.path, .{});
-        // try startShell(allocator, workdir);
+        const workdir = try std.fs.openDirAbsolute(config.paths.get("default").?.path, .{});
+        try startShell(allocator, workdir);
     }
 }
