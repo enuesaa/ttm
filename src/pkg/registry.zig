@@ -57,7 +57,7 @@ fn startShell(allocator: std.mem.Allocator, workdir: std.fs.Dir) !void {
 }
 
 const Path = struct {
-    path: []const u8,
+    path: []u8,
     archive: bool = false,
 };
 
@@ -70,11 +70,16 @@ const ConfigReal = struct {
     paths: std.StringHashMap(Path),
 
     pub fn deinit(self: *ConfigReal) void {
+        var it = self.paths.iterator();
+        while (it.next()) |entry| {
+            self.paths.allocator.free(entry.key_ptr.*); // key
+            self.paths.allocator.free(entry.value_ptr.path); // value
+        }
         self.paths.deinit();
     }
 };
 
-pub fn runcd(allocator: std.mem.Allocator, to: []const u8) !void {
+pub fn getConfig(allocator: std.mem.Allocator) !ConfigReal {
     const configPath = try getConfigPath(allocator);
     defer allocator.free(configPath);
     const configRaw = try std.fs.cwd().readFileAlloc(allocator, configPath, 1024 * 1024);
@@ -91,17 +96,24 @@ pub fn runcd(allocator: std.mem.Allocator, to: []const u8) !void {
     var it = paths_obj.iterator();
     while (it.next()) |entry| {
         const name = entry.key_ptr.*;
+        const name_copy = try allocator.dupe(u8, name);
         const obj = entry.value_ptr.*.object;
+        const raw_path = obj.get("path").?.string;
+        const path_copy = try allocator.dupe(u8, raw_path);
 
         const p = Path{
-            .path = obj.get("path").?.string,
+            .path = path_copy,
             .archive = if (obj.get("archive")) |v| v.bool else false,
         };
-        try paths.put(name, p);
+        try paths.put(name_copy, p);
     }
-    var config = ConfigReal{
+    return ConfigReal{
         .paths = paths,
     };
+}
+
+pub fn runcd(allocator: std.mem.Allocator, to: []const u8) !void {
+    var config = try getConfig(allocator);
     defer config.deinit();
 
     std.debug.print("defaultPath: {s}", .{config.paths.get("default").?.path});
