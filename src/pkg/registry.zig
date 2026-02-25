@@ -88,24 +88,18 @@ pub fn getConfig(allocator: std.mem.Allocator) !ConfigReal {
     var parsed = try std.json.parseFromSlice(Config, allocator, configRaw, .{});
     defer parsed.deinit();
 
-    const root = parsed.value;
-    const paths_obj = root.paths.object;
-
     var paths = std.StringHashMap(Path).init(allocator);
 
-    var it = paths_obj.iterator();
+    var it = parsed.value.paths.object.iterator();
     while (it.next()) |entry| {
-        const name = entry.key_ptr.*;
-        const name_copy = try allocator.dupe(u8, name);
+        const name = try allocator.dupe(u8, entry.key_ptr.*);
         const obj = entry.value_ptr.*.object;
-        const raw_path = obj.get("path").?.string;
-        const path_copy = try allocator.dupe(u8, raw_path);
-
+        const path = try allocator.dupe(u8, obj.get("path").?.string);
         const p = Path{
-            .path = path_copy,
+            .path = path,
             .archive = if (obj.get("archive")) |v| v.bool else false,
         };
-        try paths.put(name_copy, p);
+        try paths.put(name, p);
     }
     return ConfigReal{
         .paths = paths,
