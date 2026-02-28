@@ -82,6 +82,13 @@ pub fn cd() !void {
     var config = try pkgregistry.getConfig(allocator);
     defer config.deinit();
 
+    const to = try allocator.dupe(
+        u8,
+        if (std.mem.eql(u8, cliargs.cdTo, "")) "default" else cliargs.cdTo,
+    );
+    defer allocator.free(to);
+    std.debug.print("to: {s}", .{to});
+
     if (std.mem.eql(u8, cliargs.cdTo, "default")) {
         std.debug.print("path: {s}", .{config.paths.get("default").?.path});
         const workdir = try std.fs.openDirAbsolute(config.paths.get("default").?.path, .{});

@@ -111,7 +111,7 @@ pub fn launchCLI() !void {
                         .target = cli.CommandTarget{
                             .action = cli.CommandAction{
                                 .positional_args = cli.PositionalArgs{
-                                    .required = try runner.allocPositionalArgs(&.{
+                                    .optional = try runner.allocPositionalArgs(&.{
                                         .{
                                             .name = "to",
                                             .help = "to dir name",
