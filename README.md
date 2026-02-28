@@ -5,18 +5,15 @@ A CLI tool to manage tmp dirs for throwaway work
 ```bash
 ➜ ttm --help
 ttm
-Version: 0.0.4
+Version: 0.0.5
 
 USAGE:
-  ttm [OPTIONS]
+  ttm [OPTIONS] [<to>]
 
 A CLI tool to manage tmp dirs for throwaway work
 
-COMMANDS:
-  ls      list tmp dirs
-  pin     rename and keep tmp dir
-  rm      remove tmp dir
-  prune   remove archived tmp dirs
+ARGUMENTS:
+  to   to dir name
 
 OPTIONS:
   -h, --help            Show this help output.
@@ -73,32 +70,15 @@ ttm .. # move to parent dir
 
 設定ファイル
 
-```yaml
-paths:
-  default:
-    path: $HOME/repos # ttm コマンドでここに移動するイメージ
-  @:
-    path: $HOME/tmp # ttm t コマンドでここに移動するイメージ
-    archive: true # zip に固めて七日間保存するイメージ
-    envs:
-      AA: bb
-  tmp:
-    path: $HOME/tmp
-  .:
-    path: $PWD
-  ..:
-    path: ../$PWD
-
-archiveDays: 7
-```
-
 ```json
 {
   "paths": {
     "default": {
+      // `ttm` でここに移動するイメージ
       "path": "$HOME/repos"
     },
     "@": {
+      // `ttm @` でここに移動するイメージ
       "path": "$HOME/tmp"
     }
   }
@@ -110,6 +90,8 @@ archiveDays: 7
 PROMPT="%F{yellow}[ttm]%f %~ $ "
 PS1="[ttm] $PS1"
 ```
+
+ネストした時わかるよう `[ttm][ttm]` ってしてもいいかも。
 
 completion
 ```bash
@@ -128,29 +110,4 @@ completion
 ➜ compdef _foo_completion foo
 ~/tmp
 ➜ foo restart
-```
-
-samples
-```bash
-ttm() {
-  case "$1" in
-    "" )
-      cd ~ || return
-      ;;
-    "@" )
-      cd ~/tmp || return
-      ;;
-    "." )
-      cd . || return
-      ;;
-    ".." )
-      # 親ディレクトリへ
-      cd .. || return
-      ;;
-    * )
-      echo "ttm: unknown argument '$1'" >&2
-      return 1
-      ;;
-  esac
-}
 ```
