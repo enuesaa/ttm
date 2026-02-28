@@ -87,14 +87,13 @@ pub fn cd() !void {
         if (std.mem.eql(u8, cliargs.cdTo, "")) "default" else cliargs.cdTo,
     );
     defer allocator.free(to);
-    std.debug.print("to: {s}\n", .{to});
 
     const dest = config.paths.get(to);
     if (dest == null) {
-        std.debug.print("dest: <undefined>\n", .{});
+        std.debug.print("dest not found: {s}\n", .{to});
         return;
     }
-    std.debug.print("dest: {s}\n", .{dest.?.path});
+    std.debug.print("cd {s}\n", .{dest.?.path});
 
     const workdir = try std.fs.openDirAbsolute(dest.?.path, .{});
     try pkgshell.startTTMShell(allocator, workdir);
