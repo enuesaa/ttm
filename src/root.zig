@@ -79,5 +79,12 @@ pub fn cd() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
-    try pkgregistry.runcd(allocator, cliargs.cdTo);
+    var config = try pkgregistry.getConfig(allocator);
+    defer config.deinit();
+    std.debug.print("defaultPath: {s}", .{config.paths.get("default").?.path});
+
+    if (std.mem.eql(u8, cliargs.cdTo, "default")) {
+        const workdir = try std.fs.openDirAbsolute(config.paths.get("default").?.path, .{});
+        try pkgshell.startTTMShell(allocator, workdir);
+    }
 }
