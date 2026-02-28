@@ -42,7 +42,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
     const options = b.addOptions();
-    options.addOption([]const u8, "version", "0.0.4");
+    options.addOption([]const u8, "version", "0.0.5");
     exe.root_module.addOptions("config", options);
     b.installArtifact(exe);
 

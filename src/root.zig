@@ -93,7 +93,7 @@ pub fn cd() !void {
         std.debug.print("dest not found: {s}\n", .{to});
         return;
     }
-    std.debug.print("cd {s}\n", .{dest.?.path});
+    std.debug.print("{s}\n", .{dest.?.path});
 
     const workdir = try std.fs.openDirAbsolute(dest.?.path, .{});
     try pkgshell.startTTMShell(allocator, workdir);

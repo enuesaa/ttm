@@ -14,8 +14,7 @@ pub fn main() !void {
 
     // first argument is the binary name like `ttm`
     if (args.len == 2 and std.mem.eql(u8, args[1], "--init")) {
-        const stdout = std.fs.File.stdout();
-        try stdout.writeAll(initsh);
+        try std.fs.File.stdout().writeAll(initsh);
         return;
     }
     try launchCLI();
