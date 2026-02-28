@@ -81,9 +81,9 @@ pub fn cd() !void {
     const allocator = gpa.allocator();
     var config = try pkgregistry.getConfig(allocator);
     defer config.deinit();
-    std.debug.print("defaultPath: {s}", .{config.paths.get("default").?.path});
 
     if (std.mem.eql(u8, cliargs.cdTo, "default")) {
+        std.debug.print("path: {s}", .{config.paths.get("default").?.path});
         const workdir = try std.fs.openDirAbsolute(config.paths.get("default").?.path, .{});
         try pkgshell.startTTMShell(allocator, workdir);
     }
