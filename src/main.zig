@@ -2,6 +2,7 @@ const std = @import("std");
 const ttm = @import("ttm");
 const cli = @import("cli");
 const config = @import("config");
+const initsh = @embedFile("init.sh");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -13,7 +14,8 @@ pub fn main() !void {
 
     // first argument is the binary name like `ttm`
     if (args.len == 2 and std.mem.eql(u8, args[1], "--init")) {
-        std.debug.print("init\n", .{});
+        const stdout = std.fs.File.stdout();
+        try stdout.writeAll(initsh);
         return;
     }
     try launchCLI();
