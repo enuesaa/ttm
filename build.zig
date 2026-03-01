@@ -6,10 +6,6 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     // deps
-    const zigcli = b.dependency("cli", .{
-        .target = target,
-        .optimize = optimize,
-    });
     const vaxis = b.dependency("vaxis", .{
         .target = target,
         .optimize = optimize,
@@ -37,7 +33,6 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
             .imports = &.{
                 .{ .name = "ttm", .module = mod },
-                .{ .name = "cli", .module = zigcli.module("cli") },
             },
         }),
     });

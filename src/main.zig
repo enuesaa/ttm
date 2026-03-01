@@ -1,6 +1,5 @@
 const std = @import("std");
 const ttm = @import("ttm");
-const cli = @import("cli");
 const config = @import("config");
 const initsh = @embedFile("init.sh");
 const pkgscli = @import("pkg/scli.zig");
@@ -36,7 +35,7 @@ pub fn main() !void {
         return;
     }
     if (versionFlag.is) {
-        std.debug.print("v0.0.6\n", .{});
+        std.debug.print("v{s}\n", .{config.version});
         return;
     }
     if (initFlag.is) {
