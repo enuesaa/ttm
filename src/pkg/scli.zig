@@ -45,15 +45,18 @@ pub const CLI = struct {
         }
     }
 
-    // pub fn printHelp(self: *CLI) !void {
-    //     const out = std.io.getStdOut().writer();
+    pub fn generateHelpText(self: *CLI) ![]u8 {
+        var text = try std.fmt.allocPrint(self.allocator, "Flags:\n", .{});
+        errdefer self.allocator.free(text);
 
-    //     try out.print("Options:\n", .{});
-    //     for (self.flags.items) |flag| {
-    //         try out.print(
-    //             "  --{s:<12} {s}\n",
-    //             .{ flag.name, flag.description },
-    //         );
-    //     }
-    // }
+        for (self.flags.items) |flag| {
+            const line = try std.fmt.allocPrint(self.allocator, "  {s} {s}\n", .{ flag.name, flag.description });
+            defer self.allocator.free(line);
+
+            const joined = try std.mem.concat(self.allocator, u8, &[_][]const u8{ text, line });
+            self.allocator.free(text);
+            text = joined;
+        }
+        return text;
+    }
 };
