@@ -62,12 +62,9 @@ pub const CLI = struct {
                 try self.positionals.append(arg);
                 continue;
             }
-            const flag = self.lookupFlag(arg) catch {
-                continue;
-            };
-            flag.is = true;
-
+            const flag = try self.lookupFlag(arg);
             if (flag.isBoolFlag) {
+                flag.is = true;
                 continue;
             }
             if (flag.isValueFlag) {
@@ -76,6 +73,7 @@ pub const CLI = struct {
                 }
                 i += 1;
                 flag.value = self.argv[i];
+                flag.is = true;
             }
         }
     }

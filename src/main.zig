@@ -17,7 +17,10 @@ pub fn main() !void {
     defer scli.deinit();
     const helpFlag = try scli.flagBool("--help");
     const aFlag = try scli.flagValue("--a");
-    try scli.parse();
+    scli.parse() catch |err| {
+        std.debug.print("error: {}\n", .{err});
+        std.process.exit(1);
+    };
     if (helpFlag.is) {
         const helpText = try scli.generateHelpText();
         defer allocator.free(helpText);
