@@ -13,7 +13,6 @@ pub var cliargs = struct {
     removeDir: []const u8 = undefined,
     pinFrom: []const u8 = undefined,
     pinTo: []const u8 = undefined,
-    cdTo: []const u8 = undefined,
 }{};
 
 pub fn workInTmp() !void {
@@ -75,16 +74,13 @@ pub fn pin() !void {
     try tmpdir.rename(cliargs.pinTo);
 }
 
-pub fn cd() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     var config = try pkgregistry.getConfig(allocator);
     defer config.deinit();
 
     const to = try allocator.dupe(
         u8,
-        if (std.mem.eql(u8, cliargs.cdTo, "")) "default" else cliargs.cdTo,
+        if (std.mem.eql(u8, cliTo, "")) "default" else cliTo,
     );
     defer allocator.free(to);
 

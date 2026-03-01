@@ -12,7 +12,6 @@ fn buildTTMNestedEnvVar(allocator: std.mem.Allocator) ![]const u8 {
 
 pub fn startShell(allocator: std.mem.Allocator, workdir: std.fs.Dir) !void {
     const ttmNested = try buildTTMNestedEnvVar(allocator);
-    defer allocator.free(ttmNested);
 
     const argv = &[_][]const u8{"zsh"};
     var child = std.process.Child.init(argv, allocator);

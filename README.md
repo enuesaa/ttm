@@ -1,5 +1,5 @@
 # ttm
-A CLI tool to manage tmp dirs for throwaway work
+A CLI tool to move another directory temporarily
 
 ## Commands
 ```bash

@@ -13,12 +13,17 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    var scli = pkgscli.CLI.init(allocator, "ttm");
+    var scli = pkgscli.CLI.init(allocator);
     defer scli.deinit();
+    scli.description = "A CLI tool to move another directory temporarily.";
+    scli.usage = "ttm <to>";
 
     const helpFlag = try scli.flagBool("--help");
+    helpFlag.description = "show help";
     const versionFlag = try scli.flagBool("--version");
-    const aFlag = try scli.flagValue("--a");
+    versionFlag.description = "show version";
+    const initFlag = try scli.flagBool("--init");
+    initFlag.description = "print hook script for zsh";
 
     const err = scli.parse(args);
     if (err != null) {
@@ -34,50 +39,18 @@ pub fn main() !void {
         std.debug.print("v0.0.6\n", .{});
         return;
     }
-    if (aFlag.is) {
-        std.debug.print("{s}\n", .{aFlag.value.?});
+    if (initFlag.is) {
+        try std.fs.File.stdout().writeAll(initsh);
         return;
     }
-    std.debug.print("positionals {}\n", .{scli.positionals});
 
-    // // first argument is the binary name like `ttm`
-    // if (args.len == 2 and std.mem.eql(u8, args[1], "--init")) {
-    //     try std.fs.File.stdout().writeAll(initsh);
-    //     return;
-    // }
-
-    // // cli
-    // var runner = try cli.AppRunner.init(allocator);
-
-    // const app = cli.App{
-    //     .version = config.version,
-    //     .command = cli.Command{
-    //         .name = "ttm",
-    //         .description = cli.Description{
-    //             .one_line = "A CLI tool to manage tmp dirs for throwaway work",
-    //         },
-    //         .target = cli.CommandTarget{
-    //             .action = cli.CommandAction{
-    //                 .positional_args = cli.PositionalArgs{
-    //                     .optional = try runner.allocPositionalArgs(&.{
-    //                         .{
-    //                             .name = "to",
-    //                             .help = "to dir name",
-    //                             .value_ref = runner.mkRef(&ttm.cliargs.cdTo),
-    //                         },
-    //                     }),
-    //                 },
-    //                 .exec = ttm.cd,
-    //             },
-    //         },
-    //     },
-    //     .help_config = cli.HelpConfig{
-    //         .color_usage = .never,
-    //     },
-    // };
-    // defer allocator.free(ttm.cliargs.removeDir);
-    // defer allocator.free(ttm.cliargs.pinFrom);
-    // defer allocator.free(ttm.cliargs.pinTo);
-    // defer allocator.free(ttm.cliargs.cdTo);
-    // try runner.run(&app);
+    if (scli.positionals.items.len > 1) {
+        std.debug.print("error: too many positional arguments.\n", .{});
+        return;
+    }
+    if (scli.positionals.items.len == 1) {
+        try ttm.cd(allocator, scli.positionals.items[0]);
+        return;
+    }
+    try ttm.cd(allocator, "default");
 }
