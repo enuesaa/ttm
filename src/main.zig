@@ -13,21 +13,20 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    var scli = pkgscli.CLI.init(allocator, args);
+    var scli = pkgscli.CLI.init(allocator, "ttm");
     defer scli.deinit();
 
     const helpFlag = try scli.flagBool("--help");
     const versionFlag = try scli.flagBool("--version");
     const aFlag = try scli.flagValue("--a");
 
-    const err = scli.parse();
+    const err = scli.parse(args);
     if (err != null) {
         std.debug.print("error: {s}: {s}\n", .{ err.?.name, err.?.arg });
         return;
     }
     if (helpFlag.is) {
         const helpText = try scli.generateHelpText();
-        defer allocator.free(helpText);
         std.debug.print("{s}\n", .{helpText});
         return;
     }

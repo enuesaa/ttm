@@ -15,17 +15,17 @@ pub const ParseErr = struct {
 };
 
 pub const CLI = struct {
-    allocator: std.mem.Allocator,
     arena: std.heap.ArenaAllocator,
-    argv: [][:0]u8,
+    name: []const u8,
+    usage: []const u8,
     flags: std.array_list.Managed(*Flag),
     positionals: std.array_list.Managed([]const u8),
 
-    pub fn init(allocator: std.mem.Allocator, argv: [][:0]u8) CLI {
+    pub fn init(allocator: std.mem.Allocator, name: []const u8) CLI {
         return .{
-            .allocator = allocator,
             .arena = std.heap.ArenaAllocator.init(allocator),
-            .argv = argv,
+            .name = name,
+            .usage = "usage aaa",
             .flags = std.array_list.Managed(*Flag).init(allocator),
             .positionals = std.array_list.Managed([]const u8).init(allocator),
         };
@@ -63,11 +63,11 @@ pub const CLI = struct {
         return flag;
     }
 
-    pub fn parse(self: *CLI) ?ParseErr {
+    pub fn parse(self: *CLI, argv: [][:0]u8) ?ParseErr {
         var i: usize = 1;
 
-        while (i < self.argv.len) : (i += 1) {
-            const arg = self.argv[i];
+        while (i < argv.len) : (i += 1) {
+            const arg = argv[i];
 
             if (!std.mem.startsWith(u8, arg, "-")) {
                 self.positionals.append(arg) catch {
@@ -83,11 +83,11 @@ pub const CLI = struct {
                 continue;
             }
             if (flag.isValueFlag) {
-                if (i + 1 >= self.argv.len) {
+                if (i + 1 >= argv.len) {
                     return ParseErr{ .arg = arg, .name = "missing flag value" };
                 }
                 i += 1;
-                flag.value = self.argv[i];
+                flag.value = argv[i];
                 flag.is = true;
             }
         }
@@ -104,16 +104,17 @@ pub const CLI = struct {
     }
 
     pub fn generateHelpText(self: *CLI) ![]u8 {
-        var text = try std.fmt.allocPrint(self.allocator, "Flags:\n", .{});
-        errdefer self.allocator.free(text);
+        const allocator = self.arena.allocator();
+        var text = try std.fmt.allocPrint(allocator, "{s}\n\nUsage:\n  {s}\n", .{ self.name, self.usage });
 
-        for (self.flags.items) |flag| {
-            const line = try std.fmt.allocPrint(self.allocator, "  {s} {s}\n", .{ flag.name, flag.description });
-            defer self.allocator.free(line);
+        if (self.flags.items.len > 0) {
+            const flagsHeader = try std.fmt.allocPrint(allocator, "\nFlags:\n", .{});
+            text = try std.mem.concat(allocator, u8, &[_][]const u8{ text, flagsHeader });
 
-            const joined = try std.mem.concat(self.allocator, u8, &[_][]const u8{ text, line });
-            self.allocator.free(text);
-            text = joined;
+            for (self.flags.items) |flag| {
+                const flagLine = try std.fmt.allocPrint(allocator, "  {s} {s}\n", .{ flag.name, flag.description });
+                text = try std.mem.concat(allocator, u8, &[_][]const u8{ text, flagLine });
+            }
         }
         return text;
     }
