@@ -15,11 +15,14 @@ pub fn main() !void {
 
     var scli = pkgscli.CLI.init(allocator, args);
     defer scli.deinit();
+
     const helpFlag = try scli.flagBool("--help");
+    const versionFlag = try scli.flagBool("--version");
     const aFlag = try scli.flagValue("--a");
+
     const err = scli.parse();
     if (err != null) {
-        std.debug.print("error: {s} `{s}`\n", .{ err.?.name, err.?.arg });
+        std.debug.print("error: {s}: {s}\n", .{ err.?.name, err.?.arg });
         return;
     }
     if (helpFlag.is) {
@@ -28,8 +31,13 @@ pub fn main() !void {
         std.debug.print("{s}\n", .{helpText});
         return;
     }
+    if (versionFlag.is) {
+        std.debug.print("v0.0.6\n", .{});
+        return;
+    }
     if (aFlag.is) {
         std.debug.print("{s}\n", .{aFlag.value.?});
+        return;
     }
     std.debug.print("positionals {}\n", .{scli.positionals});
 

@@ -16,15 +16,17 @@ pub const ParseErr = struct {
 
 pub const CLI = struct {
     allocator: std.mem.Allocator,
+    arena: std.heap.ArenaAllocator,
     argv: [][:0]u8,
-    flags: std.array_list.Managed(Flag),
+    flags: std.array_list.Managed(*Flag),
     positionals: std.array_list.Managed([]const u8),
 
     pub fn init(allocator: std.mem.Allocator, argv: [][:0]u8) CLI {
         return .{
             .allocator = allocator,
+            .arena = std.heap.ArenaAllocator.init(allocator),
             .argv = argv,
-            .flags = std.array_list.Managed(Flag).init(allocator),
+            .flags = std.array_list.Managed(*Flag).init(allocator),
             .positionals = std.array_list.Managed([]const u8).init(allocator),
         };
     }
@@ -32,29 +34,33 @@ pub const CLI = struct {
     pub fn deinit(self: *CLI) void {
         self.flags.deinit();
         self.positionals.deinit();
+        self.arena.deinit();
     }
 
     pub fn flagBool(self: *CLI, name: []const u8) !*Flag {
-        try self.flags.append(.{
+        const flag = try self.arena.allocator().create(Flag);
+        flag.* = .{
             .name = name,
             .description = "",
             .is = false,
             .isBoolFlag = true,
             .isValueFlag = false,
-        });
-        return &self.flags.items[self.flags.items.len - 1];
+        };
+        try self.flags.append(flag);
+        return flag;
     }
 
     pub fn flagValue(self: *CLI, name: []const u8) !*Flag {
-        try self.flags.append(.{
+        const flag = try self.arena.allocator().create(Flag);
+        flag.* = .{
             .name = name,
             .description = "",
             .is = false,
-            .value = "",
             .isBoolFlag = false,
             .isValueFlag = true,
-        });
-        return &self.flags.items[self.flags.items.len - 1];
+        };
+        try self.flags.append(flag);
+        return flag;
     }
 
     pub fn parse(self: *CLI) ?ParseErr {
@@ -89,7 +95,7 @@ pub const CLI = struct {
     }
 
     fn lookupFlag(self: *CLI, name: []const u8) !*Flag {
-        for (self.flags.items) |*flag| {
+        for (self.flags.items) |flag| {
             if (std.mem.eql(u8, flag.name, name)) {
                 return flag;
             }
