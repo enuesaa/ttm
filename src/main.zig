@@ -3,6 +3,7 @@ const ttm = @import("ttm");
 const cli = @import("cli");
 const config = @import("config");
 const initsh = @embedFile("init.sh");
+const pkgscli = @import("pkg/scli.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -12,44 +13,53 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    // first argument is the binary name like `ttm`
-    if (args.len == 2 and std.mem.eql(u8, args[1], "--init")) {
-        try std.fs.File.stdout().writeAll(initsh);
-        return;
+    var scli = pkgscli.CLI.init(allocator, args);
+    defer scli.deinit();
+    const helpFlag = try scli.flagBool("--help");
+    try scli.parse();
+    if (helpFlag.is) {
+        std.debug.print("help\n", .{});
     }
+    std.debug.print("ap\n", .{});
 
-    // cli
-    var runner = try cli.AppRunner.init(allocator);
+    // // first argument is the binary name like `ttm`
+    // if (args.len == 2 and std.mem.eql(u8, args[1], "--init")) {
+    //     try std.fs.File.stdout().writeAll(initsh);
+    //     return;
+    // }
 
-    const app = cli.App{
-        .version = config.version,
-        .command = cli.Command{
-            .name = "ttm",
-            .description = cli.Description{
-                .one_line = "A CLI tool to manage tmp dirs for throwaway work",
-            },
-            .target = cli.CommandTarget{
-                .action = cli.CommandAction{
-                    .positional_args = cli.PositionalArgs{
-                        .optional = try runner.allocPositionalArgs(&.{
-                            .{
-                                .name = "to",
-                                .help = "to dir name",
-                                .value_ref = runner.mkRef(&ttm.cliargs.cdTo),
-                            },
-                        }),
-                    },
-                    .exec = ttm.cd,
-                },
-            },
-        },
-        .help_config = cli.HelpConfig{
-            .color_usage = .never,
-        },
-    };
-    defer allocator.free(ttm.cliargs.removeDir);
-    defer allocator.free(ttm.cliargs.pinFrom);
-    defer allocator.free(ttm.cliargs.pinTo);
-    defer allocator.free(ttm.cliargs.cdTo);
-    try runner.run(&app);
+    // // cli
+    // var runner = try cli.AppRunner.init(allocator);
+
+    // const app = cli.App{
+    //     .version = config.version,
+    //     .command = cli.Command{
+    //         .name = "ttm",
+    //         .description = cli.Description{
+    //             .one_line = "A CLI tool to manage tmp dirs for throwaway work",
+    //         },
+    //         .target = cli.CommandTarget{
+    //             .action = cli.CommandAction{
+    //                 .positional_args = cli.PositionalArgs{
+    //                     .optional = try runner.allocPositionalArgs(&.{
+    //                         .{
+    //                             .name = "to",
+    //                             .help = "to dir name",
+    //                             .value_ref = runner.mkRef(&ttm.cliargs.cdTo),
+    //                         },
+    //                     }),
+    //                 },
+    //                 .exec = ttm.cd,
+    //             },
+    //         },
+    //     },
+    //     .help_config = cli.HelpConfig{
+    //         .color_usage = .never,
+    //     },
+    // };
+    // defer allocator.free(ttm.cliargs.removeDir);
+    // defer allocator.free(ttm.cliargs.pinFrom);
+    // defer allocator.free(ttm.cliargs.pinTo);
+    // defer allocator.free(ttm.cliargs.cdTo);
+    // try runner.run(&app);
 }
