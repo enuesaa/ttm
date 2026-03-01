@@ -1,11 +1,5 @@
 const std = @import("std");
 
-pub const FlagBool = struct {
-    name: []const u8,
-    description: []const u8,
-    is: bool = false,
-};
-
 pub const Flag = struct {
     name: []const u8,
     description: []const u8,
@@ -15,23 +9,24 @@ pub const Flag = struct {
     isValueFlag: bool,
 };
 
-// pub const MissingFlagValue = error{};
-
 pub const CLI = struct {
     allocator: std.mem.Allocator,
     argv: [][:0]u8,
     flags: std.array_list.Managed(Flag),
+    positionals: std.array_list.Managed([]const u8),
 
     pub fn init(allocator: std.mem.Allocator, argv: [][:0]u8) CLI {
         return .{
             .allocator = allocator,
             .argv = argv,
             .flags = std.array_list.Managed(Flag).init(allocator),
+            .positionals = std.array_list.Managed([]const u8).init(allocator),
         };
     }
 
     pub fn deinit(self: *CLI) void {
         self.flags.deinit();
+        self.positionals.deinit();
     }
 
     pub fn flagBool(self: *CLI, name: []const u8) !*Flag {
@@ -58,35 +53,21 @@ pub const CLI = struct {
     }
 
     pub fn parse(self: *CLI) !void {
-        for (self.argv[1..]) |arg| {
-            if (!std.mem.startsWith(u8, arg, "--")) {
-                continue;
-            }
-            for (self.flags.items) |*flag| {
-                if (std.mem.eql(u8, flag.name, arg)) {
-                    flag.is = true;
-                }
-            }
-        }
-    }
-
-    pub fn parse2(self: *CLI) !void {
         var i: usize = 1;
 
         while (i < self.argv.len) : (i += 1) {
             const arg = self.argv[i];
 
             if (!std.mem.startsWith(u8, arg, "--")) {
+                try self.positionals.append(arg);
                 continue;
             }
-            const name = arg;
-
             for (self.flags.items) |*flag| {
-                if (!std.mem.eql(u8, flag.name, name)) {
+                if (!std.mem.eql(u8, flag.name, arg)) {
                     continue;
                 }
+                flag.is = true;
                 if (flag.isBoolFlag) {
-                    flag.is = true;
                     break;
                 }
                 if (flag.isValueFlag) {
@@ -94,7 +75,6 @@ pub const CLI = struct {
                         return error.MissingFlagValue;
                     }
                     i += 1;
-                    flag.is = true;
                     flag.value = self.argv[i];
                     break;
                 }

@@ -17,7 +17,7 @@ pub fn main() !void {
     defer scli.deinit();
     const helpFlag = try scli.flagBool("--help");
     const aFlag = try scli.flagValue("--a");
-    try scli.parse2();
+    try scli.parse();
     if (helpFlag.is) {
         const helpText = try scli.generateHelpText();
         defer allocator.free(helpText);
@@ -26,9 +26,8 @@ pub fn main() !void {
     }
     if (aFlag.is) {
         std.debug.print("{s}\n", .{aFlag.value.?});
-        return;
     }
-    std.debug.print("ap\n", .{});
+    std.debug.print("positionals {}\n", .{scli.positionals});
 
     // // first argument is the binary name like `ttm`
     // if (args.len == 2 and std.mem.eql(u8, args[1], "--init")) {
