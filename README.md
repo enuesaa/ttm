@@ -16,8 +16,7 @@ Flags:
   --init	print hook script for zsh
 ```
 
-### ttm
-ttm でセッションをスタート。exit したら即座にアーカイブ
+ttm でセッションをスタート
 
 ```bash
 # start session
@@ -27,30 +26,9 @@ ttm
 exit
 ```
 
-### ttm ls
-過去のセッションをリスト
-
-```bash
-$ ttm ls
-[q] Quit, [Enter] Start shell
-
- > 202510251849-ax52t │
-   202510251857-iz3ws │
-   202510191513-o7roe │
-```
-
-- 今の時点ではすべてのユースケースを考慮しない
-- セッションが終わってもディレクトリを圧縮しない
-
-### ttm pin
-```bash
-ttm pin last
-```
-
 ## Development
 ```bash
 zig build run
-zig build test
 ```
 
 ## Feature Plans
@@ -79,12 +57,6 @@ ttm .. # move to parent dir
     }
   }
 }
-```
-
-こんな感じでshellのpromptを変えられる
-```
-PROMPT="%F{yellow}[ttm]%f %~ $ "
-PS1="[ttm] $PS1"
 ```
 
 completion
