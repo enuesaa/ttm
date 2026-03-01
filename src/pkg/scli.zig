@@ -62,24 +62,31 @@ pub const CLI = struct {
                 try self.positionals.append(arg);
                 continue;
             }
-            for (self.flags.items) |*flag| {
-                if (!std.mem.eql(u8, flag.name, arg)) {
-                    continue;
+            const flag = self.lookupFlag(arg) catch {
+                continue;
+            };
+            flag.is = true;
+
+            if (flag.isBoolFlag) {
+                continue;
+            }
+            if (flag.isValueFlag) {
+                if (i + 1 >= self.argv.len) {
+                    return error.MissingFlagValue;
                 }
-                flag.is = true;
-                if (flag.isBoolFlag) {
-                    break;
-                }
-                if (flag.isValueFlag) {
-                    if (i + 1 >= self.argv.len) {
-                        return error.MissingFlagValue;
-                    }
-                    i += 1;
-                    flag.value = self.argv[i];
-                    break;
-                }
+                i += 1;
+                flag.value = self.argv[i];
             }
         }
+    }
+
+    fn lookupFlag(self: *CLI, name: []const u8) !*Flag {
+        for (self.flags.items) |*flag| {
+            if (std.mem.eql(u8, flag.name, name)) {
+                return flag;
+            }
+        }
+        return error.FlagNotFound;
     }
 
     pub fn generateHelpText(self: *CLI) ![]u8 {
