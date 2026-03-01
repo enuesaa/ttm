@@ -9,10 +9,9 @@ pub const Flag = struct {
     isValueFlag: bool,
 };
 
-pub const ParseResult = struct {
-    ok: bool = false,
-    errName: []const u8 = "",
-    errArg: []const u8 = "",
+pub const ParseErr = struct {
+    name: []const u8 = "",
+    arg: []const u8 = "",
 };
 
 pub const CLI = struct {
@@ -58,20 +57,20 @@ pub const CLI = struct {
         return &self.flags.items[self.flags.items.len - 1];
     }
 
-    pub fn parse(self: *CLI) ParseResult {
+    pub fn parse(self: *CLI) ?ParseErr {
         var i: usize = 1;
 
         while (i < self.argv.len) : (i += 1) {
             const arg = self.argv[i];
 
-            if (!std.mem.startsWith(u8, arg, "--")) {
+            if (!std.mem.startsWith(u8, arg, "-")) {
                 self.positionals.append(arg) catch {
-                    return ParseResult{ .ok = false, .errArg = arg, .errName = "out of memory" };
+                    return ParseErr{ .arg = arg, .name = "internal error" };
                 };
                 continue;
             }
             const flag = self.lookupFlag(arg) catch {
-                return ParseResult{ .ok = false, .errArg = arg, .errName = "flag not found" };
+                return ParseErr{ .arg = arg, .name = "flag not found" };
             };
             if (flag.isBoolFlag) {
                 flag.is = true;
@@ -79,14 +78,14 @@ pub const CLI = struct {
             }
             if (flag.isValueFlag) {
                 if (i + 1 >= self.argv.len) {
-                    return ParseResult{ .ok = false, .errArg = arg, .errName = "flag value not supplied" };
+                    return ParseErr{ .arg = arg, .name = "missing flag value" };
                 }
                 i += 1;
                 flag.value = self.argv[i];
                 flag.is = true;
             }
         }
-        return ParseResult{ .ok = true };
+        return null;
     }
 
     fn lookupFlag(self: *CLI, name: []const u8) !*Flag {

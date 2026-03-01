@@ -17,9 +17,9 @@ pub fn main() !void {
     defer scli.deinit();
     const helpFlag = try scli.flagBool("--help");
     const aFlag = try scli.flagValue("--a");
-    const result = scli.parse();
-    if (!result.ok) {
-        std.debug.print("error: {s} {s}\n", .{ result.errName, result.errArg });
+    const err = scli.parse();
+    if (err != null) {
+        std.debug.print("error: {s} `{s}`\n", .{ err.?.name, err.?.arg });
         return;
     }
     if (helpFlag.is) {
