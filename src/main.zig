@@ -16,11 +16,16 @@ pub fn main() !void {
     var scli = pkgscli.CLI.init(allocator, args);
     defer scli.deinit();
     const helpFlag = try scli.flagBool("--help");
-    try scli.parse();
+    const aFlag = try scli.flagValue("--a");
+    try scli.parse2();
     if (helpFlag.is) {
         const helpText = try scli.generateHelpText();
         defer allocator.free(helpText);
         std.debug.print("{s}\n", .{helpText});
+        return;
+    }
+    if (aFlag.is) {
+        std.debug.print("{s}\n", .{aFlag.value.?});
         return;
     }
     std.debug.print("ap\n", .{});
