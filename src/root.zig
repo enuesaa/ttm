@@ -78,15 +78,9 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     var config = try pkgregistry.getConfig(allocator);
     defer config.deinit();
 
-    const to = try allocator.dupe(
-        u8,
-        if (std.mem.eql(u8, cliTo, "")) "default" else cliTo,
-    );
-    defer allocator.free(to);
-
-    const dest = config.paths.get(to);
+    const dest = config.paths.get(cliTo);
     if (dest == null) {
-        std.debug.print("dest not found: {s}\n", .{to});
+        std.debug.print("dest not found: {s}\n", .{cliTo});
         return;
     }
     std.debug.print("{s}\n", .{dest.?.path});

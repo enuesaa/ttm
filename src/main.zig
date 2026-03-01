@@ -12,17 +12,13 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    var scli = pkgscli.CLI.init(allocator);
+    var scli = pkgscli.CLI.init(allocator, "ttm", "A CLI tool to move another directory temporarily.");
     defer scli.deinit();
-    scli.description = "A CLI tool to move another directory temporarily.";
     scli.usage = "ttm <to>";
 
-    const helpFlag = try scli.flagBool("--help");
-    helpFlag.description = "show help";
-    const versionFlag = try scli.flagBool("--version");
-    versionFlag.description = "show version";
-    const initFlag = try scli.flagBool("--init");
-    initFlag.description = "print hook script for zsh";
+    const helpFlag = try scli.flagBool("--help", "show help");
+    const versionFlag = try scli.flagBool("--version", "show version");
+    const initFlag = try scli.flagBool("--init", "print hook script for zsh");
 
     const err = scli.parse(args);
     if (err != null) {

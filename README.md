@@ -5,19 +5,15 @@ A CLI tool to move another directory temporarily
 ```bash
 ➜ ttm --help
 ttm
-Version: 0.0.5
+A CLI tool to move another directory temporarily.
 
-USAGE:
-  ttm [OPTIONS] [<to>]
+Usage:
+  ttm <to>
 
-A CLI tool to manage tmp dirs for throwaway work
-
-ARGUMENTS:
-  to   to dir name
-
-OPTIONS:
-  -h, --help            Show this help output.
-      --color <VALUE>   When to use colors (*auto*, never, always).
+Flags:
+  --help	show help
+  --version	show version
+  --init	print hook script for zsh
 ```
 
 ### ttm
