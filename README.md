@@ -91,8 +91,6 @@ PROMPT="%F{yellow}[ttm]%f %~ $ "
 PS1="[ttm] $PS1"
 ```
 
-ネストした時わかるよう `[ttm][ttm]` ってしてもいいかも。
-
 completion
 ```bash
 ➜ _foo_completion() {

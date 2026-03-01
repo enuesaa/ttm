@@ -1,27 +1,26 @@
 const std = @import("std");
 const pkgtmpdir = @import("tmpdir.zig");
 
-fn buildTTMEnvVar(allocator: std.mem.Allocator) ![]const u8 {
-    const originalTTMEnvVar = std.process.getEnvVarOwned(allocator, "TTM") catch "";
-    defer allocator.free(originalTTMEnvVar);
-
-    if (originalTTMEnvVar.len == 0) {
-        return "ttm";
+fn buildTTMNestedEnvVar(allocator: std.mem.Allocator) ![]const u8 {
+    const original = std.process.getEnvVarOwned(allocator, "TTM_NESTED") catch "";
+    defer allocator.free(original);
+    if (original.len == 0) {
+        return "*";
     }
-    return try std.mem.concat(allocator, u8, &.{ originalTTMEnvVar, "ttm" });
+    return try std.mem.concat(allocator, u8, &.{ original, "*" });
 }
 
 pub fn startShell(allocator: std.mem.Allocator, workdir: std.fs.Dir) !void {
-    const ttmEnvVar = try buildTTMEnvVar(allocator);
-    defer allocator.free(ttmEnvVar);
+    const ttmNested = try buildTTMNestedEnvVar(allocator);
+    defer allocator.free(ttmNested);
 
     const argv = &[_][]const u8{"zsh"};
-
     var child = std.process.Child.init(argv, allocator);
     child.cwd_dir = workdir;
 
     var env = try std.process.getEnvMap(allocator);
-    try env.put("TTM", ttmEnvVar);
+    try env.put("TTM", "true");
+    try env.put("TTM_NESTED", ttmNested);
     defer env.deinit();
     child.env_map = &env;
 
