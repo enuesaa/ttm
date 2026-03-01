@@ -9,6 +9,12 @@ pub const Flag = struct {
     isValueFlag: bool,
 };
 
+pub const ParseResult = struct {
+    ok: bool = false,
+    errName: []const u8 = "",
+    errArg: []const u8 = "",
+};
+
 pub const CLI = struct {
     allocator: std.mem.Allocator,
     argv: [][:0]u8,
@@ -52,30 +58,35 @@ pub const CLI = struct {
         return &self.flags.items[self.flags.items.len - 1];
     }
 
-    pub fn parse(self: *CLI) !void {
+    pub fn parse(self: *CLI) ParseResult {
         var i: usize = 1;
 
         while (i < self.argv.len) : (i += 1) {
             const arg = self.argv[i];
 
             if (!std.mem.startsWith(u8, arg, "--")) {
-                try self.positionals.append(arg);
+                self.positionals.append(arg) catch {
+                    return ParseResult{ .ok = false, .errArg = arg, .errName = "out of memory" };
+                };
                 continue;
             }
-            const flag = try self.lookupFlag(arg);
+            const flag = self.lookupFlag(arg) catch {
+                return ParseResult{ .ok = false, .errArg = arg, .errName = "flag not found" };
+            };
             if (flag.isBoolFlag) {
                 flag.is = true;
                 continue;
             }
             if (flag.isValueFlag) {
                 if (i + 1 >= self.argv.len) {
-                    return error.MissingFlagValue;
+                    return ParseResult{ .ok = false, .errArg = arg, .errName = "flag value not supplied" };
                 }
                 i += 1;
                 flag.value = self.argv[i];
                 flag.is = true;
             }
         }
+        return ParseResult{ .ok = true };
     }
 
     fn lookupFlag(self: *CLI, name: []const u8) !*Flag {
