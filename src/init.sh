@@ -1,5 +1,5 @@
-if [[ "$TTM" == "true" ]]; then
-  echo 'PS1="%F{yellow}[ttm]%f $PS1"'
+if [[ -n "$TTM" ]]; then
+  echo 'PS1="%F{yellow}${TTM}%f $PS1"'
 fi
 
 # fish

@@ -96,5 +96,5 @@ pub fn cd() !void {
     std.debug.print("{s}\n", .{dest.?.path});
 
     const workdir = try std.fs.openDirAbsolute(dest.?.path, .{});
-    try pkgshell.startTTMShell(allocator, workdir);
+    try pkgshell.startShell(allocator, workdir);
 }
