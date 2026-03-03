@@ -77,3 +77,5 @@ completion
 ~/tmp
 ➜ foo restart
 ```
+
+- --init でシェルスクリプトを吐いているが、zshrc に入れたら明らかに遅いので改善したい
