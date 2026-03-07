@@ -4,27 +4,20 @@ const pkgregistry = @import("registry.zig");
 
 pub fn startPrompt(allocator: std.mem.Allocator) !void {
     const name = try askName(allocator);
-    defer allocator.free(name);
-
     if (std.mem.eql(u8, name, "")) {
         return;
     }
     const path = try askPath(allocator);
-    defer allocator.free(path);
-
     if (std.mem.eql(u8, path, "")) {
         return;
     }
     var config = try pkgregistry.getConfig(allocator);
+    try config.paths.put(name, .{ .path = path });
     defer config.deinit();
-    try config.paths.put(try allocator.dupe(u8, path), .{
-        .path = try allocator.dupe(u8, path),
-    });
-
     try pkgregistry.writeConfig(allocator, config);
 }
 
-fn askName(allocator: std.mem.Allocator) ![]const u8 {
+fn askName(allocator: std.mem.Allocator) ![]u8 {
     const stdin = std.fs.File.stdin();
     std.debug.print("? Name: ", .{});
 
@@ -46,7 +39,7 @@ fn askName(allocator: std.mem.Allocator) ![]const u8 {
     return try allocator.dupe(u8, buf[0..idx]);
 }
 
-fn askPath(allocator: std.mem.Allocator) ![]const u8 {
+fn askPath(allocator: std.mem.Allocator) ![]u8 {
     const stdin = std.fs.File.stdin();
     std.debug.print("? Path: ", .{});
 

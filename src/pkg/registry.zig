@@ -110,18 +110,26 @@ pub fn getConfig(allocator: std.mem.Allocator) !ConfigReal {
 
 pub fn writeConfig(allocator: std.mem.Allocator, configreal: ConfigReal) !void {
     var obj = std.json.ObjectMap.init(allocator);
-    defer obj.deinit();
+    defer {
+        var obj_it = obj.iterator();
+        while (obj_it.next()) |entry| {
+            switch (entry.value_ptr.*) {
+                .object => |*nested| nested.deinit(),
+                else => {},
+            }
+        }
+        obj.deinit();
+    }
 
     var it = configreal.paths.iterator();
     while (it.next()) |entry| {
         const key = entry.key_ptr.*;
         const val = entry.value_ptr.*;
 
-        const path_obj = std.json.ObjectMap.init(allocator);
-        try path_obj.put("path", .{ .string = val.path }); // ここ
+        var path_obj = std.json.ObjectMap.init(allocator);
+        try path_obj.put("path", .{ .string = val.path });
         try obj.put(key, .{ .object = path_obj });
     }
-
     const config = Config{
         .paths = .{ .object = obj },
     };
