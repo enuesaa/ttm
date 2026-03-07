@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const Flag = struct {
     name: []const u8,
+    alias: ?[]const u8 = null,
     description: []const u8,
     isBoolFlag: bool = false,
     isValueFlag: bool = false,
@@ -94,6 +95,9 @@ pub const CLI = struct {
     fn lookupFlag(self: *CLI, name: []const u8) !*Flag {
         for (self.flags.items) |flag| {
             if (std.mem.eql(u8, flag.name, name)) {
+                return flag;
+            }
+            if (flag.alias != null and std.mem.eql(u8, flag.alias.?, name)) {
                 return flag;
             }
         }

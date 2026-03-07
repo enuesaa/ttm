@@ -19,6 +19,7 @@ pub fn main() !void {
     const versionFlag = try scli.flagBool("--version", "show version");
     const initFlag = try scli.flagBool("--init", "print hook script for zsh");
     const lsFlag = try scli.flagBool("--list", "list directories to move");
+    lsFlag.alias = "-l";
 
     const err = scli.parse(args);
     if (err != null) {
