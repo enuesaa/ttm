@@ -35,7 +35,7 @@ pub fn main() !void {
         return;
     }
     if (initFlag.is) {
-        try std.fs.File.stdout().writeAll(initsh);
+        try ttm.init(allocator);
         return;
     }
 

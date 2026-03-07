@@ -74,6 +74,11 @@ pub fn pin() !void {
     try tmpdir.rename(cliargs.pinTo);
 }
 
+pub fn init(allocator: std.mem.Allocator) !void {
+    try pkgregistry.make(allocator);
+    try pkgregistry.createHookScript(allocator);
+}
+
 pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     var config = try pkgregistry.getConfig(allocator);
     defer config.deinit();
