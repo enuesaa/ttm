@@ -113,8 +113,13 @@ pub const CLI = struct {
             text = try std.mem.concat(allocator, u8, &[_][]const u8{ text, flagsHeader });
 
             for (self.flags.items) |flag| {
-                const flagLine = try std.fmt.allocPrint(allocator, "  {s}\t{s}\n", .{ flag.name, flag.description });
-                text = try std.mem.concat(allocator, u8, &[_][]const u8{ text, flagLine });
+                if (flag.alias != null) {
+                    const flagLine = try std.fmt.allocPrint(allocator, "  {s}, {s}\t{s}\n", .{ flag.name, flag.alias.?, flag.description });
+                    text = try std.mem.concat(allocator, u8, &[_][]const u8{ text, flagLine });
+                } else {
+                    const flagLine = try std.fmt.allocPrint(allocator, "  {s}\t{s}\n", .{ flag.name, flag.description });
+                    text = try std.mem.concat(allocator, u8, &[_][]const u8{ text, flagLine });
+                }
             }
         }
         return text;
