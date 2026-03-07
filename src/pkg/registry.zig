@@ -108,19 +108,33 @@ pub fn getConfig(allocator: std.mem.Allocator) !ConfigReal {
     };
 }
 
-pub fn writeConfig(allocator: std.mem.Allocator, _: ConfigReal) !void {
-    // const configPath = try getConfigPath(allocator);
-    const conf = Path{
-        .path = try allocator.dupe(u8, "a"),
-        .archive = true,
+pub fn writeConfig(allocator: std.mem.Allocator, configreal: ConfigReal) !void {
+    var obj = std.json.ObjectMap.init(allocator);
+    defer obj.deinit();
+
+    var it = configreal.paths.iterator();
+    while (it.next()) |entry| {
+        const key = entry.key_ptr.*;
+        const val = entry.value_ptr.*;
+
+        const path_obj = std.json.ObjectMap.init(allocator);
+        try path_obj.put("path", .{ .string = val.path }); // ここ
+        try obj.put(key, .{ .object = path_obj });
+    }
+
+    const config = Config{
+        .paths = .{ .object = obj },
     };
 
     var out = std.Io.Writer.Allocating.init(allocator);
     defer out.deinit();
 
-    try std.json.Stringify.value(conf, .{}, &out.writer);
+    try std.json.Stringify.value(config, .{}, &out.writer);
     const str = try out.toOwnedSlice();
-    std.debug.print("a {s}\n", .{str});
+    defer allocator.free(str);
+    std.debug.print("{s}\n", .{str});
+
+    // const configPath = try getConfigPath(allocator);
 
     // defer allocator.free(configPath);
     // const file = try std.fs.cwd().createFile(configPath, .{});
