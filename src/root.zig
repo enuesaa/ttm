@@ -25,9 +25,11 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
         std.debug.print("dest not found: {s}\n", .{cliTo});
         return;
     }
-    std.debug.print("{s}\n", .{dest.?.path});
+    const path = try std.fs.cwd().realpathAlloc(allocator, dest.?.path);
+    defer allocator.free(path);
+    std.debug.print("{s}\n", .{path});
 
-    const workdir = try std.fs.openDirAbsolute(dest.?.path, .{});
+    const workdir = try std.fs.openDirAbsolute(path, .{});
     try pkgshell.startShell(allocator, workdir);
 }
 
