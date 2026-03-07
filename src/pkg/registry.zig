@@ -45,7 +45,9 @@ pub fn getHookScriptPath(allocator: std.mem.Allocator) ![]u8 {
 pub fn createHookScript(allocator: std.mem.Allocator) !void {
     const hookScriptPath = try getHookScriptPath(allocator);
     defer allocator.free(hookScriptPath);
-    const file = try std.fs.cwd().createFile(hookScriptPath, .{});
+    const file = try std.fs.cwd().createFile(hookScriptPath, .{
+        .mode = 0o755,
+    });
     defer file.close();
     try file.writeAll(hooksh);
 }
