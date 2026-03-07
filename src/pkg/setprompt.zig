@@ -12,7 +12,13 @@ pub fn startPrompt(allocator: std.mem.Allocator) !void {
         return;
     }
     var config = try pkgregistry.getConfig(allocator);
-    try config.paths.put(name, .{ .path = path });
+    if (config.paths.getPtr(name)) |current| {
+        allocator.free(current.path);
+        current.path = path;
+        defer allocator.free(name);
+    } else {
+        try config.paths.put(name, .{ .path = path });
+    }
     defer config.deinit();
     try pkgregistry.writeConfig(allocator, config);
 }

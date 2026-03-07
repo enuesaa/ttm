@@ -137,7 +137,7 @@ pub fn writeConfig(allocator: std.mem.Allocator, configreal: ConfigReal) !void {
     var out = std.Io.Writer.Allocating.init(allocator);
     defer out.deinit();
 
-    try std.json.Stringify.value(config, .{}, &out.writer);
+    try std.json.Stringify.value(config, .{ .whitespace = .indent_2 }, &out.writer);
     const str = try out.toOwnedSlice();
     defer allocator.free(str);
     std.debug.print("{s}\n", .{str});
