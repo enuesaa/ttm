@@ -142,10 +142,9 @@ pub fn writeConfig(allocator: std.mem.Allocator, configreal: ConfigReal) !void {
     defer allocator.free(str);
     std.debug.print("{s}\n", .{str});
 
-    // const configPath = try getConfigPath(allocator);
-
-    // defer allocator.free(configPath);
-    // const file = try std.fs.cwd().createFile(configPath, .{});
-    // defer file.close();
-    // try file.writeAll(hooksh);
+    const configPath = try getConfigPath(allocator);
+    defer allocator.free(configPath);
+    const file = try std.fs.cwd().createFile(configPath, .{});
+    defer file.close();
+    try file.writeAll(str);
 }
