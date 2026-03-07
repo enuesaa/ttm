@@ -1,4 +1,5 @@
 const std = @import("std");
+const hooksh = @embedFile("registryhook.sh");
 
 fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
     var env = try std.process.getEnvMap(allocator);
@@ -35,10 +36,18 @@ pub fn make(allocator: std.mem.Allocator) !void {
     try makeRegistry(allocator);
 }
 
-pub fn createHookScript(_: std.mem.Allocator) !void {
-    const file = try std.fs.cwd().createFile("a.txt", .{});
+pub fn getHookScriptPath(allocator: std.mem.Allocator) ![]u8 {
+    const registryPath = try getRegistryPath(allocator);
+    defer allocator.free(registryPath);
+    return try std.fs.path.join(allocator, &.{ registryPath, "hook.sh" });
+}
+
+pub fn createHookScript(allocator: std.mem.Allocator) !void {
+    const hookScriptPath = try getHookScriptPath(allocator);
+    defer allocator.free(hookScriptPath);
+    const file = try std.fs.cwd().createFile(hookScriptPath, .{});
     defer file.close();
-    try file.writeAll("aaa");
+    try file.writeAll(hooksh);
 }
 
 pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {

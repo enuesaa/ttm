@@ -1,7 +1,6 @@
 const std = @import("std");
 const ttm = @import("ttm");
 const config = @import("config");
-const initsh = @embedFile("init.sh");
 const pkgscli = @import("pkg/scli.zig");
 
 pub fn main() !void {

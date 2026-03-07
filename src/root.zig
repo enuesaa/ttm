@@ -77,6 +77,11 @@ pub fn pin() !void {
 pub fn init(allocator: std.mem.Allocator) !void {
     try pkgregistry.make(allocator);
     try pkgregistry.createHookScript(allocator);
+
+    const hookScriptPath = try pkgregistry.getHookScriptPath(allocator);
+    defer allocator.free(hookScriptPath);
+    std.debug.print("call hook script in zshrc:\n", .{});
+    std.debug.print("eval \"$({s})\"\n", .{hookScriptPath});
 }
 
 pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
