@@ -2,9 +2,7 @@ const std = @import("std");
 const pkgregistry = @import("pkg/registry.zig");
 const pkgtmpdir = @import("pkg/tmpdir.zig");
 const pkgshell = @import("pkg/shell.zig");
-const pkgpinprompt = @import("pkg/pinprompt.zig");
 const pkglist = @import("pkg/list.zig");
-const pkgprune = @import("pkg/prune.zig");
 const pkgdir = @import("pkg/dir.zig");
 const pkgsetprompt = @import("pkg/setprompt.zig");
 
