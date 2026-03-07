@@ -6,6 +6,7 @@ const pkgpinprompt = @import("pkg/pinprompt.zig");
 const pkglist = @import("pkg/list.zig");
 const pkgprune = @import("pkg/prune.zig");
 const pkgdir = @import("pkg/dir.zig");
+const pkgsetprompt = @import("pkg/setprompt.zig");
 
 pub fn init(allocator: std.mem.Allocator) !void {
     try pkgregistry.make(allocator);
@@ -44,4 +45,9 @@ pub fn ls(allocator: std.mem.Allocator) !void {
         const path = entry.value_ptr.*;
         std.debug.print("{s}:\n  {s}\n\n", .{ name, path.path });
     }
+}
+
+pub fn set(allocator: std.mem.Allocator) !void {
+    try pkgsetprompt.startPrompt(allocator);
+    return;
 }

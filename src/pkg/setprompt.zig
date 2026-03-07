@@ -1,0 +1,72 @@
+const std = @import("std");
+const pkgtmpdir = @import("tmpdir.zig");
+const pkgregistry = @import("registry.zig");
+
+pub fn startPrompt(allocator: std.mem.Allocator) !void {
+    const name = try askName(allocator);
+    defer allocator.free(name);
+
+    if (std.mem.eql(u8, name, "")) {
+        return;
+    }
+    const path = try askPath(allocator);
+    defer allocator.free(name);
+
+    if (std.mem.eql(u8, path, "")) {
+        return;
+    }
+    var config = try pkgregistry.getConfig(allocator);
+    defer config.deinit();
+
+    try config.paths.put(name, .{ .path = try allocator.dupe(u8, path) });
+
+    try pkgregistry.writeConfig(allocator, config);
+}
+
+fn askName(allocator: std.mem.Allocator) ![]const u8 {
+    const stdin = std.fs.File.stdin();
+
+    const defaultName = "";
+    std.debug.print("? Name: ", .{});
+
+    var buf: [100]u8 = undefined;
+    var idx: usize = 0;
+
+    while (idx < buf.len) {
+        var b: [1]u8 = undefined;
+        const n = try stdin.read(&b);
+        if (n == 0 or b[0] == '\n') {
+            break;
+        }
+        buf[idx] = b[0];
+        idx += 1;
+    }
+    if (idx == 0) {
+        return defaultName;
+    }
+    return try allocator.dupe(u8, buf[0..idx]);
+}
+
+fn askPath(allocator: std.mem.Allocator) ![]const u8 {
+    const stdin = std.fs.File.stdin();
+
+    const defaultName = "";
+    std.debug.print("? Path: ", .{});
+
+    var buf: [100]u8 = undefined;
+    var idx: usize = 0;
+
+    while (idx < buf.len) {
+        var b: [1]u8 = undefined;
+        const n = try stdin.read(&b);
+        if (n == 0 or b[0] == '\n') {
+            break;
+        }
+        buf[idx] = b[0];
+        idx += 1;
+    }
+    if (idx == 0) {
+        return defaultName;
+    }
+    return try allocator.dupe(u8, buf[0..idx]);
+}

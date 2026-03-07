@@ -107,3 +107,23 @@ pub fn getConfig(allocator: std.mem.Allocator) !ConfigReal {
         .paths = paths,
     };
 }
+
+pub fn writeConfig(allocator: std.mem.Allocator, _: ConfigReal) !void {
+    // const configPath = try getConfigPath(allocator);
+    const conf = Path{
+        .path = try allocator.dupe(u8, "a"),
+        .archive = true,
+    };
+
+    var out = std.Io.Writer.Allocating.init(allocator);
+    defer out.deinit();
+
+    try std.json.Stringify.value(conf, .{}, &out.writer);
+    const str = try out.toOwnedSlice();
+    std.debug.print("a {s}\n", .{str});
+
+    // defer allocator.free(configPath);
+    // const file = try std.fs.cwd().createFile(configPath, .{});
+    // defer file.close();
+    // try file.writeAll(hooksh);
+}
