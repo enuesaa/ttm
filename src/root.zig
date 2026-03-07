@@ -12,7 +12,7 @@ pub fn init(allocator: std.mem.Allocator) !void {
 
     const hookScriptPath = try pkgregistry.getHookScriptPath(allocator);
     defer allocator.free(hookScriptPath);
-    std.debug.print("call hook script in zshrc:\n", .{});
+    std.debug.print("Add the following hook script to .zshrc:\n\n", .{});
     std.debug.print("eval \"$({s})\"\n", .{hookScriptPath});
 }
 
@@ -29,4 +29,16 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
 
     const workdir = try std.fs.openDirAbsolute(dest.?.path, .{});
     try pkgshell.startShell(allocator, workdir);
+}
+
+pub fn ls(allocator: std.mem.Allocator) !void {
+    var config = try pkgregistry.getConfig(allocator);
+    defer config.deinit();
+
+    var it = config.paths.iterator();
+    while (it.next()) |entry| {
+        const name = entry.key_ptr.*;
+        const path = entry.value_ptr.*;
+        std.debug.print("{s}:\n  {s}\n\n", .{ name, path.path });
+    }
 }

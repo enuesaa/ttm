@@ -18,6 +18,7 @@ pub fn main() !void {
     const helpFlag = try scli.flagBool("--help", "show help");
     const versionFlag = try scli.flagBool("--version", "show version");
     const initFlag = try scli.flagBool("--init", "print hook script for zsh");
+    const lsFlag = try scli.flagBool("--list", "list directories to move");
 
     const err = scli.parse(args);
     if (err != null) {
@@ -35,6 +36,10 @@ pub fn main() !void {
     }
     if (initFlag.is) {
         try ttm.init(allocator);
+        return;
+    }
+    if (lsFlag.is) {
+        try ttm.ls(allocator);
         return;
     }
 
