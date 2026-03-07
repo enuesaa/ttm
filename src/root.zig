@@ -5,6 +5,7 @@ const pkgshell = @import("pkg/shell.zig");
 const pkgpinprompt = @import("pkg/pinprompt.zig");
 const pkglist = @import("pkg/list.zig");
 const pkgprune = @import("pkg/prune.zig");
+const pkgdir = @import("pkg/dir.zig");
 
 pub fn init(allocator: std.mem.Allocator) !void {
     try pkgregistry.make(allocator);
@@ -25,11 +26,11 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
         std.debug.print("dest not found: {s}\n", .{cliTo});
         return;
     }
-    const path = try std.fs.cwd().realpathAlloc(allocator, dest.?.path);
-    defer allocator.free(path);
-    std.debug.print("{s}\n", .{path});
+    const abspath = try pkgdir.abs(allocator, dest.?.path);
+    defer allocator.free(abspath);
+    std.debug.print("{s}\n", .{abspath});
 
-    const workdir = try std.fs.openDirAbsolute(path, .{});
+    const workdir = try pkgdir.open(allocator, abspath);
     try pkgshell.startShell(allocator, workdir);
 }
 
