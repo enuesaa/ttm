@@ -3,7 +3,7 @@ A CLI tool to move another directory temporarily
 
 ## Commands
 ```bash
-➜ ttm --help
+➜ zig build run -- --help
 ttm
 A CLI tool to move another directory temporarily.
 
@@ -14,30 +14,14 @@ Flags:
   --help	show help
   --version	show version
   --init	print hook script for zsh
+  -l, --list	list directories to move
+  --set	add or update directory configuration
 ```
 
-ttm でセッションをスタート
-
-```bash
-# start session
-ttm
-
-# exit
-exit
-```
-
-## Development
-```bash
-zig build run
-```
-
-## Feature Plans
-
-ファイル移動を主軸に考えなおす
+指定のディレクトリでセッションを開始する
 
 ```bash
 ttm    # start session. move to default dir. and exit.
-ttm @  # move to ~/tmp dir
 ttm .  # move to current dir
 ttm .. # move to parent dir
 ```
@@ -59,6 +43,7 @@ ttm .. # move to parent dir
 }
 ```
 
+## memo
 completion
 ```bash
 ➜ _foo_completion() {
