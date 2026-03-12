@@ -6,10 +6,6 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     // deps
-    const vaxis = b.dependency("vaxis", .{
-        .target = target,
-        .optimize = optimize,
-    });
     const ymlz = b.dependency("ymlz", .{
         .target = target,
         .optimize = optimize,
@@ -20,7 +16,6 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .imports = &.{
-            .{ .name = "vaxis", .module = vaxis.module("vaxis") },
             .{ .name = "ymlz", .module = ymlz.module("root") },
         },
     });
