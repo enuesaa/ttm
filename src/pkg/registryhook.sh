@@ -1,6 +1,6 @@
 if [[ "$TTM" == "true" ]]; then
   if [[ "$TTM_NESTED" =~ ^\*+$ ]]; then
-    echo 'PS1="%F{yellow}ttm${TTM_NESTED}%f $PS1"'
+    echo 'PS1="%F{yellow}${TTM_NESTED}%f $PS1"'
   fi
 fi
 
