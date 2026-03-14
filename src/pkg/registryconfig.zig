@@ -1,92 +1,87 @@
 const std = @import("std");
 const pkgregistry = @import("registry.zig");
 
-const Path = struct {
-    path: []u8,
+pub const Path = struct {
+    path: []const u8,
     archive: bool = false,
 };
 
-// 一度にparseできないので一旦こうする
-const Config = struct {
-    paths: std.json.Value,
-};
-
-const ConfigReal = struct {
+pub const Config = struct {
     paths: std.StringHashMap(Path),
 
-    pub fn deinit(self: *ConfigReal) void {
+    pub fn deinit(self: *Config) void {
         var it = self.paths.iterator();
         while (it.next()) |entry| {
-            self.paths.allocator.free(entry.key_ptr.*); // key
-            self.paths.allocator.free(entry.value_ptr.path); // value
+            self.paths.allocator.free(entry.key_ptr.*);
+            self.paths.allocator.free(entry.value_ptr.path);
         }
         self.paths.deinit();
     }
+
+    // see https://github.com/ziglang/zig/blob/master/lib/std/json/Stringify.zig
+    pub fn jsonStringify(self: Config, jw: anytype) !void {
+        try jw.beginObject();
+        try jw.objectField("paths");
+        try jw.beginObject();
+        var it = self.paths.iterator();
+        while (it.next()) |entry| {
+            try jw.objectField(entry.key_ptr.*);
+            try jw.write(entry.value_ptr.*);
+        }
+        try jw.endObject();
+        try jw.endObject();
+    }
 };
 
-pub fn getConfig(allocator: std.mem.Allocator) !ConfigReal {
+fn parsePathEntry(allocator: std.mem.Allocator, obj: std.json.ObjectMap) !Path {
+    const path = obj.get("path") orelse return error.MissingPathField;
+    return .{
+        .path = try allocator.dupe(u8, path.string),
+        .archive = if (obj.get("archive")) |v| v.bool else false,
+    };
+}
+
+pub fn get(allocator: std.mem.Allocator) !Config {
     const configPath = try pkgregistry.getConfigPath(allocator);
     defer allocator.free(configPath);
     const configRaw = try std.fs.cwd().readFileAlloc(allocator, configPath, 1024 * 1024);
     defer allocator.free(configRaw);
 
-    var parsed = try std.json.parseFromSlice(Config, allocator, configRaw, .{});
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, configRaw, .{});
     defer parsed.deinit();
+    const parsedpaths = parsed.value.object.get("paths") orelse return error.MissingPathsKey;
 
     var paths = std.StringHashMap(Path).init(allocator);
+    defer {
+        var it = paths.iterator();
+        while (it.next()) |entry| {
+            allocator.free(entry.key_ptr.*);
+            allocator.free(entry.value_ptr.path);
+        }
+        paths.deinit();
+    }
 
-    var it = parsed.value.paths.object.iterator();
+    var it = parsedpaths.object.iterator();
     while (it.next()) |entry| {
         const name = try allocator.dupe(u8, entry.key_ptr.*);
-        const obj = entry.value_ptr.*.object;
-        const path = try allocator.dupe(u8, obj.get("path").?.string);
-        const p = Path{
-            .path = path,
-            .archive = if (obj.get("archive")) |v| v.bool else false,
-        };
+        defer allocator.free(name);
+        const p = try parsePathEntry(allocator, entry.value_ptr.*.object);
         try paths.put(name, p);
     }
-    return ConfigReal{
-        .paths = paths,
-    };
+    return Config{ .paths = paths };
 }
 
-pub fn writeConfig(allocator: std.mem.Allocator, configreal: ConfigReal) !void {
-    var obj = std.json.ObjectMap.init(allocator);
-    defer {
-        var obj_it = obj.iterator();
-        while (obj_it.next()) |entry| {
-            switch (entry.value_ptr.*) {
-                .object => |*nested| nested.deinit(),
-                else => {},
-            }
-        }
-        obj.deinit();
-    }
-
-    var it = configreal.paths.iterator();
-    while (it.next()) |entry| {
-        const key = entry.key_ptr.*;
-        const val = entry.value_ptr.*;
-
-        var path_obj = std.json.ObjectMap.init(allocator);
-        try path_obj.put("path", .{ .string = val.path });
-        try obj.put(key, .{ .object = path_obj });
-    }
-    const config = Config{
-        .paths = .{ .object = obj },
-    };
-
+pub fn write(allocator: std.mem.Allocator, config: Config) !void {
     var out = std.Io.Writer.Allocating.init(allocator);
     defer out.deinit();
 
-    try std.json.Stringify.value(config, .{ .whitespace = .indent_2 }, &out.writer);
+    try out.writer.print("{f}", .{std.json.fmt(config, .{ .whitespace = .indent_2 })});
     const str = try out.toOwnedSlice();
     defer allocator.free(str);
-    std.debug.print("{s}\n", .{str});
 
     const configPath = try pkgregistry.getConfigPath(allocator);
     defer allocator.free(configPath);
+
     const file = try std.fs.cwd().createFile(configPath, .{});
     defer file.close();
     try file.writeAll(str);

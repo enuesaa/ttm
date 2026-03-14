@@ -10,7 +10,7 @@ pub fn startPrompt(allocator: std.mem.Allocator) !void {
     if (std.mem.eql(u8, path, "")) {
         return;
     }
-    var config = try pkgregistryconfig.getConfig(allocator);
+    var config = try pkgregistryconfig.get(allocator);
     if (config.paths.getPtr(name)) |current| {
         allocator.free(current.path);
         current.path = path;
@@ -19,7 +19,7 @@ pub fn startPrompt(allocator: std.mem.Allocator) !void {
         try config.paths.put(name, .{ .path = path });
     }
     defer config.deinit();
-    try pkgregistryconfig.writeConfig(allocator, config);
+    try pkgregistryconfig.write(allocator, config);
 }
 
 fn askName(allocator: std.mem.Allocator) ![]u8 {
