@@ -1,6 +1,5 @@
 const std = @import("std");
 const pkgregistry = @import("pkg/registry.zig");
-const pkgtmpdir = @import("pkg/tmpdir.zig");
 const pkgshell = @import("pkg/shell.zig");
 const pkglist = @import("pkg/list.zig");
 const pkgdir = @import("pkg/dir.zig");
