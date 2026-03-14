@@ -49,40 +49,35 @@ pub const Config = struct {
         var it = parsedpaths.object.iterator();
         while (it.next()) |entry| {
             const name = try allocator.dupe(u8, entry.key_ptr.*);
-            const path = parsePathEntry(allocator, entry.value_ptr.*.object) catch return error.UnexpectedToken;
+            const pathValue = entry.value_ptr.*.object.get("path") orelse return error.UnexpectedToken;
+            const path = Path{
+                .path = try allocator.dupe(u8, pathValue.string),
+                .archive = false,
+            };
             try paths.put(name, path);
         }
         return Config{ .paths = paths };
     }
 };
 
-fn parsePathEntry(allocator: std.mem.Allocator, obj: std.json.ObjectMap) !Path {
-    const path = obj.get("path") orelse return error.MissingPathField;
-    return .{
-        .path = try allocator.dupe(u8, path.string),
-        .archive = if (obj.get("archive")) |v| v.bool else false,
-    };
-}
-
 pub fn get(allocator: std.mem.Allocator) !Config {
-    const configPath = try pkgregistry.getConfigPath(allocator);
-    defer allocator.free(configPath);
-    const configRaw = try std.fs.cwd().readFileAlloc(allocator, configPath, 1024 * 1024);
-    defer allocator.free(configRaw);
-
-    var scanner = std.json.Scanner.initCompleteInput(allocator, configRaw);
+    const path = try pkgregistry.getConfigPath(allocator);
+    defer allocator.free(path);
+    const raw = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);
+    defer allocator.free(raw);
+    var scanner = std.json.Scanner.initCompleteInput(allocator, raw);
     defer scanner.deinit();
 
     return try std.json.parseFromTokenSourceLeaky(Config, allocator, &scanner, .{});
 }
 
 pub fn write(allocator: std.mem.Allocator, config: Config) !void {
-    const configPath = try pkgregistry.getConfigPath(allocator);
-    defer allocator.free(configPath);
-    const configRaw = try config.stringify(allocator);
-    defer allocator.free(configRaw);
+    const path = try pkgregistry.getConfigPath(allocator);
+    defer allocator.free(path);
+    const raw = try config.stringify(allocator);
+    defer allocator.free(raw);
 
-    const file = try std.fs.cwd().createFile(configPath, .{});
+    const file = try std.fs.cwd().createFile(path, .{});
     defer file.close();
-    try file.writeAll(configRaw);
+    try file.writeAll(raw);
 }
