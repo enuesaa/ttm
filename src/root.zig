@@ -36,12 +36,9 @@ pub fn ls(allocator: std.mem.Allocator) !void {
     var config = try pkgregistryconfig.get(allocator);
     defer config.deinit();
 
-    var it = config.paths.iterator();
-    while (it.next()) |entry| {
-        const name = entry.key_ptr.*;
-        const path = entry.value_ptr.*;
-        std.debug.print("{s}:\n  {s}\n\n", .{ name, path.path });
-    }
+    const configRaw = try config.stringify(allocator);
+    defer allocator.free(configRaw);
+    std.debug.print("{s}\n", .{configRaw});
 }
 
 pub fn set(allocator: std.mem.Allocator) !void {

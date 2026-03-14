@@ -32,6 +32,13 @@ pub const Config = struct {
         try jw.endObject();
     }
 
+    pub fn stringify(self: Config, allocator: std.mem.Allocator) ![]u8 {
+        var out = std.Io.Writer.Allocating.init(allocator);
+        defer out.deinit();
+        try out.writer.print("{f}", .{std.json.fmt(self, .{ .whitespace = .indent_2 })});
+        return try out.toOwnedSlice();
+    }
+
     // see https://github.com/ziglang/zig/blob/master/lib/std/json/Scanner.zig
     pub fn jsonParse(allocator: std.mem.Allocator, scanner: anytype, options: std.json.ParseOptions) std.json.ParseError(@TypeOf(scanner.*))!Config {
         const parsed = try std.json.parseFromTokenSource(std.json.Value, allocator, scanner, options);
@@ -72,11 +79,7 @@ pub fn get(allocator: std.mem.Allocator) !Config {
 pub fn write(allocator: std.mem.Allocator, config: Config) !void {
     const configPath = try pkgregistry.getConfigPath(allocator);
     defer allocator.free(configPath);
-    var out = std.Io.Writer.Allocating.init(allocator);
-    defer out.deinit();
-
-    try out.writer.print("{f}", .{std.json.fmt(config, .{ .whitespace = .indent_2 })});
-    const configRaw = try out.toOwnedSlice();
+    const configRaw = try config.stringify(allocator);
     defer allocator.free(configRaw);
 
     const file = try std.fs.cwd().createFile(configPath, .{});
