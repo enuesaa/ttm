@@ -1,5 +1,6 @@
 const std = @import("std");
 const pkgregistry = @import("pkg/registry.zig");
+const pkgregistryconfig = @import("pkg/registryconfig.zig");
 const pkgshell = @import("pkg/shell.zig");
 const pkglist = @import("pkg/list.zig");
 const pkgdir = @import("pkg/dir.zig");
@@ -16,7 +17,7 @@ pub fn init(allocator: std.mem.Allocator) !void {
 }
 
 pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
-    var config = try pkgregistry.getConfig(allocator);
+    var config = try pkgregistryconfig.getConfig(allocator);
     defer config.deinit();
 
     const dest = config.paths.get(cliTo);
@@ -33,7 +34,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
 }
 
 pub fn ls(allocator: std.mem.Allocator) !void {
-    var config = try pkgregistry.getConfig(allocator);
+    var config = try pkgregistryconfig.getConfig(allocator);
     defer config.deinit();
 
     var it = config.paths.iterator();

@@ -1,6 +1,5 @@
 const std = @import("std");
-const pkgtmpdir = @import("tmpdir.zig");
-const pkgregistry = @import("registry.zig");
+const pkgregistryconfig = @import("registryconfig.zig");
 
 pub fn startPrompt(allocator: std.mem.Allocator) !void {
     const name = try askName(allocator);
@@ -11,7 +10,7 @@ pub fn startPrompt(allocator: std.mem.Allocator) !void {
     if (std.mem.eql(u8, path, "")) {
         return;
     }
-    var config = try pkgregistry.getConfig(allocator);
+    var config = try pkgregistryconfig.getConfig(allocator);
     if (config.paths.getPtr(name)) |current| {
         allocator.free(current.path);
         current.path = path;
@@ -20,7 +19,7 @@ pub fn startPrompt(allocator: std.mem.Allocator) !void {
         try config.paths.put(name, .{ .path = path });
     }
     defer config.deinit();
-    try pkgregistry.writeConfig(allocator, config);
+    try pkgregistryconfig.writeConfig(allocator, config);
 }
 
 fn askName(allocator: std.mem.Allocator) ![]u8 {

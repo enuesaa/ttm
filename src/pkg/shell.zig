@@ -1,5 +1,4 @@
 const std = @import("std");
-const pkgtmpdir = @import("tmpdir.zig");
 
 fn buildTTMNestedEnvVar(allocator: std.mem.Allocator) ![]const u8 {
     const original = std.process.getEnvVarOwned(allocator, "TTM_NESTED") catch "";
@@ -25,13 +24,4 @@ pub fn startShell(allocator: std.mem.Allocator, workdir: std.fs.Dir) !void {
     child.env_map = &env;
 
     _ = try child.spawnAndWait();
-}
-
-pub fn start(tmppath: []u8) !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
-
-    const workdir = try std.fs.openDirAbsolute(tmppath, .{});
-    try startShell(allocator, workdir);
 }
