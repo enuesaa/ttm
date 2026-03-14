@@ -31,6 +31,22 @@ pub const Config = struct {
         try jw.endObject();
         try jw.endObject();
     }
+
+    // see https://github.com/ziglang/zig/blob/master/lib/std/json/Scanner.zig
+    pub fn jsonParse(allocator: std.mem.Allocator, scanner: anytype, options: std.json.ParseOptions) std.json.ParseError(@TypeOf(scanner.*))!Config {
+        const parsed = try std.json.parseFromTokenSource(std.json.Value, allocator, scanner, options);
+        defer parsed.deinit();
+        const parsedpaths = parsed.value.object.get("paths") orelse return error.UnexpectedToken;
+
+        var paths = std.StringHashMap(Path).init(allocator);
+        var it = parsedpaths.object.iterator();
+        while (it.next()) |entry| {
+            const name = try allocator.dupe(u8, entry.key_ptr.*);
+            const path = parsePathEntry(allocator, entry.value_ptr.*.object) catch return error.UnexpectedToken;
+            try paths.put(name, path);
+        }
+        return Config{ .paths = paths };
+    }
 };
 
 fn parsePathEntry(allocator: std.mem.Allocator, obj: std.json.ObjectMap) !Path {
@@ -47,42 +63,23 @@ pub fn get(allocator: std.mem.Allocator) !Config {
     const configRaw = try std.fs.cwd().readFileAlloc(allocator, configPath, 1024 * 1024);
     defer allocator.free(configRaw);
 
-    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, configRaw, .{});
-    defer parsed.deinit();
-    const parsedpaths = parsed.value.object.get("paths") orelse return error.MissingPathsKey;
+    var scanner = std.json.Scanner.initCompleteInput(allocator, configRaw);
+    defer scanner.deinit();
 
-    var paths = std.StringHashMap(Path).init(allocator);
-    defer {
-        var it = paths.iterator();
-        while (it.next()) |entry| {
-            allocator.free(entry.key_ptr.*);
-            allocator.free(entry.value_ptr.path);
-        }
-        paths.deinit();
-    }
-
-    var it = parsedpaths.object.iterator();
-    while (it.next()) |entry| {
-        const name = try allocator.dupe(u8, entry.key_ptr.*);
-        defer allocator.free(name);
-        const p = try parsePathEntry(allocator, entry.value_ptr.*.object);
-        try paths.put(name, p);
-    }
-    return Config{ .paths = paths };
+    return try std.json.parseFromTokenSourceLeaky(Config, allocator, &scanner, .{});
 }
 
 pub fn write(allocator: std.mem.Allocator, config: Config) !void {
+    const configPath = try pkgregistry.getConfigPath(allocator);
+    defer allocator.free(configPath);
     var out = std.Io.Writer.Allocating.init(allocator);
     defer out.deinit();
 
     try out.writer.print("{f}", .{std.json.fmt(config, .{ .whitespace = .indent_2 })});
-    const str = try out.toOwnedSlice();
-    defer allocator.free(str);
-
-    const configPath = try pkgregistry.getConfigPath(allocator);
-    defer allocator.free(configPath);
+    const configRaw = try out.toOwnedSlice();
+    defer allocator.free(configRaw);
 
     const file = try std.fs.cwd().createFile(configPath, .{});
     defer file.close();
-    try file.writeAll(str);
+    try file.writeAll(configRaw);
 }
