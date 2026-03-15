@@ -1,6 +1,6 @@
 const std = @import("std");
 const pkgregistry = @import("registry.zig");
-const Yaml = @import("yaml").Yaml;
+const yaml = @import("yaml");
 
 pub const Path = struct {
     path: []const u8,
@@ -9,18 +9,25 @@ pub const Path = struct {
 
 pub const Config = struct {
     paths: []Path,
+
+    pub fn stringify(self: *Config, allocator: std.mem.Allocator) ![]u8 {
+        var buf = std.Io.Writer.Allocating.init(allocator);
+        defer buf.deinit();
+        try yaml.stringify(allocator, self.*, &buf.writer);
+        return try buf.toOwnedSlice();
+    }
 };
 
-pub const ConfigHandle = struct {
+pub const Parsed = struct {
     config: Config,
     arena: std.heap.ArenaAllocator,
 
-    pub fn deinit(self: *ConfigHandle) void {
+    pub fn deinit(self: *Parsed) void {
         self.arena.deinit();
     }
 };
 
-pub fn get(allocator: std.mem.Allocator) !ConfigHandle {
+pub fn get(allocator: std.mem.Allocator) !Parsed {
     const path = try pkgregistry.getConfigPath(allocator);
     defer allocator.free(path);
     const raw = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);
@@ -29,14 +36,14 @@ pub fn get(allocator: std.mem.Allocator) !ConfigHandle {
     var arena = std.heap.ArenaAllocator.init(allocator);
     errdefer arena.deinit();
 
-    var yaml = Yaml{ .source = raw };
-    try yaml.load(arena.allocator());
+    var parser = yaml.Yaml{ .source = raw };
+    try parser.load(arena.allocator());
 
-    const handle = ConfigHandle{
-        .config = try yaml.parse(arena.allocator(), Config),
+    const parsed = Parsed{
+        .config = try parser.parse(arena.allocator(), Config),
         .arena = arena,
     };
-    return handle;
+    return parsed;
 }
 
 // pub fn write(allocator: std.mem.Allocator, config: Config) !void {

@@ -34,12 +34,12 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
 }
 
 pub fn ls(allocator: std.mem.Allocator) !void {
-    var configHandle = try pkgconfig.get(allocator);
-    defer configHandle.deinit();
-    // defer allocator.free(config);
-    // const configRaw = try config.stringify(allocator);
-    // defer allocator.free(configRaw);
-    std.debug.print("{}\n", .{configHandle.config});
+    var parsed = try pkgconfig.get(allocator);
+    defer parsed.deinit();
+
+    const configRaw = try parsed.config.stringify(allocator);
+    defer allocator.free(configRaw);
+    std.debug.print("{s}\n", .{configRaw});
 }
 
 pub fn set(allocator: std.mem.Allocator) !void {
