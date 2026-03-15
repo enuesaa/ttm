@@ -34,15 +34,12 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
 }
 
 pub fn ls(allocator: std.mem.Allocator) !void {
-    var arena = std.heap.ArenaAllocator.init(allocator);
-    defer arena.deinit();
-    const alloc = arena.allocator();
-
-    const config = try pkgconfig.get(alloc);
+    var configHandle = try pkgconfig.get(allocator);
+    defer configHandle.deinit();
     // defer allocator.free(config);
     // const configRaw = try config.stringify(allocator);
     // defer allocator.free(configRaw);
-    std.debug.print("{}\n", .{config});
+    std.debug.print("{}\n", .{configHandle.config});
 }
 
 pub fn set(allocator: std.mem.Allocator) !void {

@@ -11,17 +11,32 @@ pub const Config = struct {
     paths: []Path,
 };
 
-pub fn get(allocator: std.mem.Allocator) !Config {
+pub const ConfigHandle = struct {
+    config: Config,
+    arena: std.heap.ArenaAllocator,
+
+    pub fn deinit(self: *ConfigHandle) void {
+        self.arena.deinit();
+    }
+};
+
+pub fn get(allocator: std.mem.Allocator) !ConfigHandle {
     const path = try pkgregistry.getConfigPath(allocator);
     defer allocator.free(path);
     const raw = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);
     defer allocator.free(raw);
 
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    errdefer arena.deinit();
+
     var yaml = Yaml{ .source = raw };
-    try yaml.load(allocator);
-    defer yaml.deinit(allocator);
-    const config = try yaml.parse(allocator, Config);
-    return config;
+    try yaml.load(arena.allocator());
+
+    const handle = ConfigHandle{
+        .config = try yaml.parse(arena.allocator(), Config),
+        .arena = arena,
+    };
+    return handle;
 }
 
 // pub fn write(allocator: std.mem.Allocator, config: Config) !void {
