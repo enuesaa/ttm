@@ -3,6 +3,7 @@ const pkgregistry = @import("registry.zig");
 const yaml = @import("yaml");
 
 pub const Path = struct {
+    name: []const u8,
     path: []const u8,
     command: ?[]const u8,
 };
@@ -15,6 +16,15 @@ pub const Config = struct {
         defer buf.deinit();
         try yaml.stringify(allocator, self.*, &buf.writer);
         return try buf.toOwnedSlice();
+    }
+
+    pub fn getPath(self: *Config, name: []const u8) ?Path {
+        for (self.paths) |path| {
+            if (std.mem.eql(u8, path.name, name)) {
+                return path;
+            }
+        }
+        return null;
     }
 };
 
@@ -46,13 +56,13 @@ pub fn get(allocator: std.mem.Allocator) !Parsed {
     return parsed;
 }
 
-// pub fn write(allocator: std.mem.Allocator, config: Config) !void {
-//     const path = try pkgregistry.getConfigPath(allocator);
-//     defer allocator.free(path);
-//     const raw = try config.stringify(allocator);
-//     defer allocator.free(raw);
+pub fn write(allocator: std.mem.Allocator, config: Config) !void {
+    const path = try pkgregistry.getConfigPath(allocator);
+    defer allocator.free(path);
+    const raw = try config.stringify(allocator);
+    defer allocator.free(raw);
 
-//     const file = try std.fs.cwd().createFile(path, .{});
-//     defer file.close();
-//     try file.writeAll(raw);
-// }
+    const file = try std.fs.cwd().createFile(path, .{});
+    defer file.close();
+    try file.writeAll(raw);
+}
