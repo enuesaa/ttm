@@ -25,3 +25,20 @@ pub fn startShell(allocator: std.mem.Allocator, workdir: std.fs.Dir) !void {
 
     _ = try child.spawnAndWait();
 }
+
+pub fn start(allocator: std.mem.Allocator, workdir: std.fs.Dir, argv: []const []const u8) !void {
+    const ttmNested = try buildTTMNestedEnvVar(allocator);
+    defer allocator.free(ttmNested);
+
+    // const argv = &[_][]const u8{command};
+    var child = std.process.Child.init(argv, allocator);
+    child.cwd_dir = workdir;
+
+    var env = try std.process.getEnvMap(allocator);
+    try env.put("TTM", "true");
+    try env.put("TTM_NESTED", ttmNested);
+    defer env.deinit();
+    child.env_map = &env;
+
+    _ = try child.spawnAndWait();
+}
