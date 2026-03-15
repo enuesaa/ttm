@@ -27,7 +27,6 @@ pub fn main() !void {
     const initFlag = try scli.flagBool("--init", "print hook script for zsh");
     const lsFlag = try scli.flagBool("--list", "list directories to move");
     lsFlag.alias = "-l";
-    const setFlag = try scli.flagBool("--set", "add or update directory configuration");
 
     const err = scli.parse(args);
     if (err != null) {
@@ -49,10 +48,6 @@ pub fn main() !void {
     }
     if (lsFlag.is) {
         try ttm.ls(allocator);
-        return;
-    }
-    if (setFlag.is) {
-        try ttm.set(allocator);
         return;
     }
 

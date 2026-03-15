@@ -3,7 +3,6 @@ const pkgregistry = @import("pkg/registry.zig");
 const pkgconfig = @import("pkg/config.zig");
 const pkgshell = @import("pkg/shell.zig");
 const pkgdir = @import("pkg/dir.zig");
-const pkgsetprompt = @import("pkg/setprompt.zig");
 
 pub fn init(allocator: std.mem.Allocator) !void {
     try pkgregistry.make(allocator);
@@ -39,9 +38,4 @@ pub fn ls(allocator: std.mem.Allocator) !void {
     const configRaw = try parsed.config.stringify(allocator);
     defer allocator.free(configRaw);
     std.debug.print("{s}\n", .{configRaw});
-}
-
-pub fn set(allocator: std.mem.Allocator) !void {
-    try pkgsetprompt.startPrompt(allocator);
-    return;
 }
