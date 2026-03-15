@@ -43,8 +43,8 @@ ttm .. # move to parent dir
 }
 ```
 
-## memo
-completion
+## feature plans
+- completion
 ```bash
 ➜ _foo_completion() {
   local -a subcmds
@@ -59,6 +59,7 @@ completion
 }
 ~/tmp
 ➜ compdef _foo_completion foo
-~/tmp
-➜ foo restart
 ```
+
+- history
+- commands
