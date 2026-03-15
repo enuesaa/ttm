@@ -3,7 +3,6 @@ const pkgregistry = @import("registry.zig");
 
 pub const Path = struct {
     path: []const u8,
-    archive: bool = false,
 };
 
 pub const Config = struct {
@@ -52,7 +51,6 @@ pub const Config = struct {
             const pathValue = entry.value_ptr.*.object.get("path") orelse return error.UnexpectedToken;
             const path = Path{
                 .path = try allocator.dupe(u8, pathValue.string),
-                .archive = false,
             };
             try paths.put(name, path);
         }
