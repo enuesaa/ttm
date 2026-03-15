@@ -3,6 +3,13 @@ const ttm = @import("ttm");
 const config = @import("config");
 const pkgscli = @import("pkg/scli.zig");
 
+pub const std_options: std.Options = .{
+    .log_scope_levels = &[_]std.log.ScopeLevel{
+        .{ .scope = .tokenizer, .level = .warn },
+        .{ .scope = .parser, .level = .warn },
+    },
+};
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
