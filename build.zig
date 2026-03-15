@@ -6,7 +6,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     // deps
-    const ymlz = b.dependency("ymlz", .{
+    const yaml = b.dependency("yaml", .{
         .target = target,
         .optimize = optimize,
     });
@@ -16,7 +16,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .imports = &.{
-            .{ .name = "ymlz", .module = ymlz.module("root") },
+            .{ .name = "yaml", .module = yaml.module("yaml") },
         },
     });
 
