@@ -29,12 +29,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     std.debug.print("{s}\n", .{abspath});
 
     const workdir = try pkgdir.open(allocator, abspath);
-    if (std.mem.eql(u8, cliTo, "aaa")) {
-        const argv = &[_][]const u8{ "sh", "-c", "docker run --rm -p 8080:80 nginx" };
-        try pkgshell.start(allocator, workdir, argv);
-    } else {
-        try pkgshell.startShell(allocator, workdir);
-    }
+    try pkgshell.start(allocator, workdir, dest.?.command);
 }
 
 pub fn ls(allocator: std.mem.Allocator) !void {

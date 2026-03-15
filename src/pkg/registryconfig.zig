@@ -3,6 +3,7 @@ const pkgregistry = @import("registry.zig");
 
 pub const Path = struct {
     path: []const u8,
+    command: ?[]const u8,
 };
 
 pub const Config = struct {
@@ -13,6 +14,7 @@ pub const Config = struct {
         while (it.next()) |entry| {
             self.paths.allocator.free(entry.key_ptr.*);
             self.paths.allocator.free(entry.value_ptr.path);
+            if (entry.value_ptr.command) |cmd| self.paths.allocator.free(cmd);
         }
         self.paths.deinit();
     }
@@ -49,8 +51,10 @@ pub const Config = struct {
         while (it.next()) |entry| {
             const name = try allocator.dupe(u8, entry.key_ptr.*);
             const pathValue = entry.value_ptr.*.object.get("path") orelse return error.UnexpectedToken;
+            const commandValue = entry.value_ptr.*.object.get("command");
             const path = Path{
                 .path = try allocator.dupe(u8, pathValue.string),
+                .command = if (commandValue) |cv| try allocator.dupe(u8, cv.string) else null,
             };
             try paths.put(name, path);
         }

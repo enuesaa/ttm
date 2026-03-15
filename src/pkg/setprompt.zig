@@ -16,7 +16,7 @@ pub fn startPrompt(allocator: std.mem.Allocator) !void {
         current.path = path;
         defer allocator.free(name);
     } else {
-        try config.paths.put(name, .{ .path = path });
+        try config.paths.put(name, .{ .path = path, .command = null });
     }
     defer config.deinit();
     try pkgregistryconfig.write(allocator, config);
