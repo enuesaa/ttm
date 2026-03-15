@@ -55,5 +55,5 @@ pub fn createHookScript(allocator: std.mem.Allocator) !void {
 pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
     const registryPath = try getRegistryPath(allocator);
     defer allocator.free(registryPath);
-    return try std.fs.path.join(allocator, &.{ registryPath, "config.json" });
+    return try std.fs.path.join(allocator, &.{ registryPath, "config.yaml" });
 }

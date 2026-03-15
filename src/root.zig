@@ -1,6 +1,7 @@
 const std = @import("std");
 const pkgregistry = @import("pkg/registry.zig");
 const pkgregistryconfig = @import("pkg/registryconfig.zig");
+const pkgconfig = @import("pkg/config.zig");
 const pkgshell = @import("pkg/shell.zig");
 const pkgdir = @import("pkg/dir.zig");
 const pkgsetprompt = @import("pkg/setprompt.zig");
@@ -33,12 +34,15 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
 }
 
 pub fn ls(allocator: std.mem.Allocator) !void {
-    var config = try pkgregistryconfig.get(allocator);
-    defer config.deinit();
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+    const alloc = arena.allocator();
 
-    const configRaw = try config.stringify(allocator);
-    defer allocator.free(configRaw);
-    std.debug.print("{s}\n", .{configRaw});
+    const config = try pkgconfig.get(alloc);
+    // defer allocator.free(config);
+    // const configRaw = try config.stringify(allocator);
+    // defer allocator.free(configRaw);
+    std.debug.print("{}\n", .{config});
 }
 
 pub fn set(allocator: std.mem.Allocator) !void {
