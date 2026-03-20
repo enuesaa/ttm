@@ -74,13 +74,9 @@ fn padRight(allocator: std.mem.Allocator, s: []const u8, width: usize) ![]u8 {
 pub fn listup(allocator: std.mem.Allocator, config: Config) !void {
     var maxName: usize = 4;
     var maxPath: usize = 4;
-    var maxCmd: usize = 7;
     for (config.paths) |p| {
         if (p.name.len > maxName) maxName = p.name.len;
         if (p.path.len > maxPath) maxPath = p.path.len;
-        if (p.command) |cmd| {
-            if (cmd.len > maxCmd) maxCmd = cmd.len;
-        }
     }
 
     const hName = try padRight(allocator, "NAME", maxName);
@@ -94,6 +90,21 @@ pub fn listup(allocator: std.mem.Allocator, config: Config) !void {
         defer allocator.free(colName);
         const colPath = try padRight(allocator, p.path, maxPath);
         defer allocator.free(colPath);
-        std.debug.print("{s}  {s}  {s}\n", .{ colName, colPath, p.command orelse "-" });
+
+        if (p.command) |cmd| {
+            var lines = std.mem.splitScalar(u8, cmd, '\n');
+            const first = lines.next() orelse "";
+            std.debug.print("{s}  {s}  {s}\n", .{ colName, colPath, first });
+
+            const emptyName = try padRight(allocator, "", maxName);
+            defer allocator.free(emptyName);
+            const emptyPath = try padRight(allocator, "", maxPath);
+            defer allocator.free(emptyPath);
+            while (lines.next()) |line| {
+                std.debug.print("{s}  {s}  {s}\n", .{ emptyName, emptyPath, line });
+            }
+        } else {
+            std.debug.print("{s}  {s}  -\n", .{ colName, colPath });
+        }
     }
 }
