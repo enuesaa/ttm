@@ -1,18 +1,9 @@
 const std = @import("std");
+const pkgdir = @import("dir.zig");
 const hooksh = @embedFile("registryhook.sh");
 
-fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
-    var env = try std.process.getEnvMap(allocator);
-    defer env.deinit();
-
-    if (env.get("HOME")) |home| {
-        return try allocator.dupe(u8, home);
-    }
-    return error.RuntimeError;
-}
-
 pub fn getRegistryPath(allocator: std.mem.Allocator) ![]u8 {
-    const homedir = try getHomeDir(allocator);
+    const homedir = try pkgdir.getHomeDir(allocator);
     defer allocator.free(homedir);
     return try std.fs.path.join(allocator, &.{ homedir, ".ttm" });
 }

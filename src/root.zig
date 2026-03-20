@@ -34,6 +34,5 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
 pub fn ls(allocator: std.mem.Allocator) !void {
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
-
     try pkgconfig.listup(allocator, parsed.config);
 }
