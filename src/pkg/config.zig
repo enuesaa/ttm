@@ -2,6 +2,7 @@ const std = @import("std");
 const pkgregistry = @import("registry.zig");
 const yaml = @import("yaml");
 const Ymlz = @import("ymlz").Ymlz;
+const toml = @import("toml");
 
 pub const Path = struct {
     name: []const u8,
@@ -53,18 +54,21 @@ pub fn get(allocator: std.mem.Allocator) !Parsed {
     var arena = std.heap.ArenaAllocator.init(allocator);
     errdefer arena.deinit();
 
-    var ymlz = try Ymlz(Config).init(arena.allocator());
-    const config = try ymlz.loadRaw(raw);
-    defer ymlz.deinit(config);
-
-    std.debug.print("{}\n", .{config});
+    // var ymlz = try Ymlz(Config).init(arena.allocator());
+    // const config = try ymlz.loadRaw(raw);
+    // defer ymlz.deinit(config);
 
     // var parser = yaml.Yaml{ .source = raw };
     // try parser.load(arena.allocator());
 
+    var parser = toml.Parser(Config).init(arena.allocator());
+    defer parser.deinit();
+    var result = try parser.parseString(raw);
+    defer result.deinit();
+
     const parsed = Parsed{
         // .config = try parser.parse(arena.allocator(), Config),
-        .config = config,
+        .config = result.value,
         .arena = arena,
     };
     return parsed;
