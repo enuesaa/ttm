@@ -11,23 +11,17 @@ pub const Path = struct {
 };
 
 pub const Config = struct {
-    a: []const u8,
-    paths: []Path,
+    paths: [5]Path,
 
     pub fn stringify(self: *Config, allocator: std.mem.Allocator) ![]u8 {
         var buf = std.Io.Writer.Allocating.init(allocator);
         defer buf.deinit();
-        try yaml.stringify(allocator, self.*, &buf.writer);
+        try toml.serialize(allocator, self.*, &buf.writer);
         return try buf.toOwnedSlice();
     }
 
     pub fn getPath(self: *Config, name: []const u8) ?Path {
-        std.debug.print("{s}\n", .{self.a});
-
         for (self.paths) |path| {
-            std.debug.print("bbb {s}\n", .{path.name});
-            std.debug.print("\n", .{});
-
             if (std.mem.eql(u8, path.name, name)) {
                 return path;
             }
@@ -71,6 +65,8 @@ pub fn get(allocator: std.mem.Allocator) !Parsed {
         .config = result.value,
         .arena = arena,
     };
+
+    std.debug.print("{s}", .{try result.value.stringify(arena.allocator())});
     return parsed;
 }
 
