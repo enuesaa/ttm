@@ -11,13 +11,6 @@ pub const Path = struct {
 pub const Config = struct {
     paths: []Path,
 
-    pub fn stringify(self: *Config, allocator: std.mem.Allocator) ![]u8 {
-        var buf = std.Io.Writer.Allocating.init(allocator);
-        defer buf.deinit();
-        try toml.serialize(allocator, self.*, &buf.writer);
-        return try buf.toOwnedSlice();
-    }
-
     pub fn getPath(self: *Config, name: []const u8) ?Path {
         for (self.paths) |path| {
             if (std.mem.eql(u8, path.name, name)) {
@@ -60,7 +53,10 @@ pub fn get(allocator: std.mem.Allocator) !Parsed {
 pub fn write(allocator: std.mem.Allocator, config: Config) !void {
     const path = try pkgregistry.getConfigPath(allocator);
     defer allocator.free(path);
-    const raw = try config.stringify(allocator);
+    var buf = std.Io.Writer.Allocating.init(allocator);
+    defer buf.deinit();
+    try toml.serialize(allocator, config, &buf.writer);
+    const raw = try buf.toOwnedSlice();
     defer allocator.free(raw);
 
     const file = try std.fs.cwd().createFile(path, .{});

@@ -35,7 +35,8 @@ pub fn ls(allocator: std.mem.Allocator) !void {
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
 
-    const configRaw = try parsed.config.stringify(allocator);
-    defer allocator.free(configRaw);
-    std.debug.print("{s}\n", .{configRaw});
+    for (parsed.config.paths) |path| {
+        std.debug.print("{s}:\n", .{path.name});
+        std.debug.print("  {s}\n", .{path.path});
+    }
 }
