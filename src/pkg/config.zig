@@ -9,7 +9,7 @@ pub const Path = struct {
 };
 
 pub const Config = struct {
-    paths: [5]Path,
+    paths: []Path,
 
     pub fn stringify(self: *Config, allocator: std.mem.Allocator) ![]u8 {
         var buf = std.Io.Writer.Allocating.init(allocator);
@@ -48,9 +48,8 @@ pub fn get(allocator: std.mem.Allocator) !Parsed {
 
     var parser = toml.Parser(Config).init(arena.allocator());
     defer parser.deinit();
-    var result = try parser.parseString(raw);
-    defer result.deinit();
 
+    const result = try parser.parseString(raw);
     const parsed = Parsed{
         .config = result.value,
         .arena = arena,
