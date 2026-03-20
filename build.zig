@@ -6,14 +6,6 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     // deps
-    const yaml = b.dependency("yaml", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    const ymlz = b.dependency("ymlz", .{
-        .target = target,
-        .optimize = optimize,
-    });
     const toml = b.dependency("toml", .{
         .target = target,
         .optimize = optimize,
@@ -24,8 +16,6 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .imports = &.{
-            .{ .name = "yaml", .module = yaml.module("yaml") },
-            .{ .name = "ymlz", .module = ymlz.module("root") },
             .{ .name = "toml", .module = toml.module("toml") },
         },
     });

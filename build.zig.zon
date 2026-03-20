@@ -4,14 +4,6 @@
     .fingerprint = 0xd4e9b88929b7e884,
     .minimum_zig_version = "0.15.2",
     .dependencies = .{
-        .yaml = .{
-            .url = "https://github.com/kubkon/zig-yaml/archive/refs/tags/0.2.0.tar.gz",
-            .hash = "zig_yaml-0.2.0-C1161pmrAgC_rL9WzjvgNg7HnmyAMwHsG3Sre0F4haPI",
-        },
-        .ymlz = .{
-            .url = "https://github.com/pwbh/ymlz/archive/refs/tags/0.6.0.tar.gz",
-            .hash = "ymlz-0.5.0-TG82aXqrAAC-NtiqbYQC2cNo4Qr9L9LDKEKMYRjtK6vT",
-        },
         .toml = .{
             .url = "git+https://github.com/sam701/zig-toml#a73c9423d88ed413204b39638fab7e9bccdb83fd",
             .hash = "toml-0.3.0-bV14Be6EAQDr0fkyURz4jYFyTAMPcwlNN0FEPVjDnXTR",
