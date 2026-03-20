@@ -7,6 +7,7 @@ const pkgdir = @import("pkg/dir.zig");
 pub fn init(allocator: std.mem.Allocator) !void {
     try pkgregistry.make(allocator);
     try pkgregistry.createHookScript(allocator);
+    try pkgregistry.createInitialConfig(allocator);
 
     const hookScriptPath = try pkgregistry.getHookScriptPath(allocator);
     defer allocator.free(hookScriptPath);

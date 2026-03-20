@@ -1,0 +1,15 @@
+[[paths]]
+name = "default"
+path = "~"
+
+[[paths]]
+name = ".."
+path = ".."
+
+[[paths]]
+name = "files"
+path = "~"
+command = """
+echo "list files in ~"
+ls -a
+"""

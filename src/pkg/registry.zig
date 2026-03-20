@@ -1,6 +1,7 @@
 const std = @import("std");
 const pkgdir = @import("dir.zig");
 const hooksh = @embedFile("registryhook.sh");
+const initialConfig = @embedFile("registryconfig.toml");
 
 pub fn getRegistryPath(allocator: std.mem.Allocator) ![]u8 {
     const homedir = try pkgdir.getHomeDir(allocator);
@@ -47,4 +48,24 @@ pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
     const registryPath = try getRegistryPath(allocator);
     defer allocator.free(registryPath);
     return try std.fs.path.join(allocator, &.{ registryPath, "config.toml" });
+}
+
+pub fn isConfigExist(allocator: std.mem.Allocator) !bool {
+    const configPath = try getConfigPath(allocator);
+    defer allocator.free(configPath);
+    return if (std.fs.accessAbsolute(configPath, .{})) |_| true else |_| false;
+}
+
+pub fn createInitialConfig(allocator: std.mem.Allocator) !void {
+    const isExist = try isConfigExist(allocator);
+    if (isExist) {
+        return;
+    }
+    const configPath = try getConfigPath(allocator);
+    defer allocator.free(configPath);
+    const file = try std.fs.cwd().createFile(configPath, .{
+        .mode = 0o755,
+    });
+    defer file.close();
+    try file.writeAll(initialConfig);
 }
