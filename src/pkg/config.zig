@@ -63,3 +63,37 @@ pub fn write(allocator: std.mem.Allocator, config: Config) !void {
     defer file.close();
     try file.writeAll(raw);
 }
+
+fn padRight(allocator: std.mem.Allocator, s: []const u8, width: usize) ![]u8 {
+    var buf = std.array_list.Managed(u8).init(allocator);
+    try buf.appendSlice(s);
+    try buf.appendNTimes(' ', width - s.len);
+    return buf.toOwnedSlice();
+}
+
+pub fn listup(allocator: std.mem.Allocator, config: Config) !void {
+    var maxName: usize = 4;
+    var maxPath: usize = 4;
+    var maxCmd: usize = 7;
+    for (config.paths) |p| {
+        if (p.name.len > maxName) maxName = p.name.len;
+        if (p.path.len > maxPath) maxPath = p.path.len;
+        if (p.command) |cmd| {
+            if (cmd.len > maxCmd) maxCmd = cmd.len;
+        }
+    }
+
+    const hName = try padRight(allocator, "NAME", maxName);
+    defer allocator.free(hName);
+    const hPath = try padRight(allocator, "PATH", maxPath);
+    defer allocator.free(hPath);
+    std.debug.print("{s}  {s}  COMMAND\n", .{ hName, hPath });
+
+    for (config.paths) |p| {
+        const colName = try padRight(allocator, p.name, maxName);
+        defer allocator.free(colName);
+        const colPath = try padRight(allocator, p.path, maxPath);
+        defer allocator.free(colPath);
+        std.debug.print("{s}  {s}  {s}\n", .{ colName, colPath, p.command orelse "-" });
+    }
+}
