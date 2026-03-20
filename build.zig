@@ -10,6 +10,10 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const ymlz = b.dependency("ymlz", .{
+        .target = target,
+        .optimize = optimize,
+    });
 
     // mod
     const mod = b.addModule("ttm", .{
@@ -17,6 +21,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .imports = &.{
             .{ .name = "yaml", .module = yaml.module("yaml") },
+            .{ .name = "ymlz", .module = ymlz.module("root") },
         },
     });
 

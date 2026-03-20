@@ -1,6 +1,7 @@
 const std = @import("std");
 const pkgregistry = @import("registry.zig");
 const yaml = @import("yaml");
+const Ymlz = @import("ymlz").Ymlz;
 
 pub const Path = struct {
     name: []const u8,
@@ -9,6 +10,7 @@ pub const Path = struct {
 };
 
 pub const Config = struct {
+    a: []const u8,
     paths: []Path,
 
     pub fn stringify(self: *Config, allocator: std.mem.Allocator) ![]u8 {
@@ -19,7 +21,12 @@ pub const Config = struct {
     }
 
     pub fn getPath(self: *Config, name: []const u8) ?Path {
+        std.debug.print("{s}\n", .{self.a});
+
         for (self.paths) |path| {
+            std.debug.print("bbb {s}\n", .{path.name});
+            std.debug.print("\n", .{});
+
             if (std.mem.eql(u8, path.name, name)) {
                 return path;
             }
@@ -46,11 +53,18 @@ pub fn get(allocator: std.mem.Allocator) !Parsed {
     var arena = std.heap.ArenaAllocator.init(allocator);
     errdefer arena.deinit();
 
-    var parser = yaml.Yaml{ .source = raw };
-    try parser.load(arena.allocator());
+    var ymlz = try Ymlz(Config).init(arena.allocator());
+    const config = try ymlz.loadRaw(raw);
+    defer ymlz.deinit(config);
+
+    std.debug.print("{}\n", .{config});
+
+    // var parser = yaml.Yaml{ .source = raw };
+    // try parser.load(arena.allocator());
 
     const parsed = Parsed{
-        .config = try parser.parse(arena.allocator(), Config),
+        // .config = try parser.parse(arena.allocator(), Config),
+        .config = config,
         .arena = arena,
     };
     return parsed;
