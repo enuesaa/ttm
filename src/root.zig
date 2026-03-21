@@ -43,8 +43,10 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     }
     const abspath = try pkgdir.abs(allocator, dest.?.path);
     defer allocator.free(abspath);
-    std.debug.print("{s}\n", .{abspath});
-
+    std.debug.print("{s}***** {s} *****{s}\n", .{ "\x1b[33m", abspath, "\x1b[0m" });
+    if (dest.?.command) |cmd| {
+        std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", cmd, "\x1b[0m" });
+    }
     const act = std.posix.Sigaction{
         .handler = .{ .handler = handleCancel },
         .mask = std.posix.sigemptyset(),
@@ -56,6 +58,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     try pkgshell.start(allocator, workdir, dest.?.command);
 
     if (dest.?.onAfterCommand) |onAfterCommand| {
+        std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onAfterCommand, "\x1b[0m" });
         try pkgshell.start(allocator, workdir, onAfterCommand);
     }
 }
