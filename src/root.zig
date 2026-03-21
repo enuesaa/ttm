@@ -45,8 +45,31 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     defer allocator.free(abspath);
     std.debug.print("{s}\n", .{abspath});
 
+    const act = std.posix.Sigaction{
+        .handler = .{ .handler = handleCancel },
+        .mask = std.posix.sigemptyset(),
+        .flags = 0,
+    };
+    std.posix.sigaction(std.posix.SIG.INT, &act, null);
+
     const workdir = try pkgdir.open(allocator, abspath);
     try pkgshell.start(allocator, workdir, dest.?.command);
+
+    if (dest.?.onAfterCommand) |onAfterCommand| {
+        try pkgshell.start(allocator, workdir, onAfterCommand);
+    }
+}
+
+var canceling = false;
+
+// NOTE: 開発時注意。zig build run -- が ctrl+c をキャッチして終了してしまう
+fn handleCancel(_: c_int) callconv(.c) void {
+    if (!canceling) {
+        canceling = true;
+        std.debug.print("catch ctrl+c\n", .{});
+        return;
+    }
+    std.debug.print("force cancel\n", .{});
 }
 
 pub fn ls(allocator: std.mem.Allocator) !void {

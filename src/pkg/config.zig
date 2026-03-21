@@ -7,6 +7,7 @@ pub const Path = struct {
     name: []const u8,
     path: []const u8,
     command: ?[]const u8,
+    onAfterCommand: ?[]const u8,
 };
 
 pub const Config = struct {
@@ -50,20 +51,6 @@ pub fn get(allocator: std.mem.Allocator) !Parsed {
         .arena = arena,
     };
     return parsed;
-}
-
-pub fn write(allocator: std.mem.Allocator, config: Config) !void {
-    const path = try pkgregistry.getConfigPath(allocator);
-    defer allocator.free(path);
-    var buf = std.Io.Writer.Allocating.init(allocator);
-    defer buf.deinit();
-    try toml.serialize(allocator, config, &buf.writer);
-    const raw = try buf.toOwnedSlice();
-    defer allocator.free(raw);
-
-    const file = try std.fs.cwd().createFile(path, .{});
-    defer file.close();
-    try file.writeAll(raw);
 }
 
 fn padRight(allocator: std.mem.Allocator, s: []const u8, width: usize) ![]u8 {
