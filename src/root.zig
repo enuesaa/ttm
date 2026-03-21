@@ -43,7 +43,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     }
     const abspath = try pkgdir.abs(allocator, dest.?.path);
     defer allocator.free(abspath);
-    std.debug.print("{s}***** {s} *****{s}\n", .{ "\x1b[33m", abspath, "\x1b[0m" });
+    std.debug.print("{s}*** {s} ***{s}\n", .{ "\x1b[33m", dest.?.path, "\x1b[0m" });
     if (dest.?.command) |cmd| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", cmd, "\x1b[0m" });
     }

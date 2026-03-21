@@ -22,11 +22,11 @@ pub fn main() !void {
     defer scli.deinit();
     scli.usage = "ttm <to>";
 
-    const helpFlag = try scli.flagBool("--help", "show help");
-    const versionFlag = try scli.flagBool("--version", "show version");
-    const initFlag = try scli.flagBool("--init", "print hook script for zsh");
-    const editFlag = try scli.flagBool("--edit", "edit ttm config file");
-    const lsFlag = try scli.flagBool("--list", "list directories to move");
+    const helpFlag = try scli.flagBool("-help", "show help");
+    const versionFlag = try scli.flagBool("-version", "show version");
+    const initFlag = try scli.flagBool("-init", "print hook script for zsh");
+    const editFlag = try scli.flagBool("-edit", "edit ttm config file");
+    const lsFlag = try scli.flagBool("-ls", "list directories to move");
     lsFlag.alias = "-l";
 
     const err = scli.parse(args);
