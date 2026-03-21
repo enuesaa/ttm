@@ -20,55 +20,59 @@ pub const CLI = struct {
     name: []const u8,
     description: []const u8,
     usage: []const u8 = "",
-    flags: std.array_list.Managed(*Flag),
-    positionals: std.array_list.Managed([]const u8),
+    flags: std.ArrayList(*Flag),
+    positionals: std.ArrayList([]const u8),
 
     pub fn init(allocator: std.mem.Allocator, name: []const u8, description: []const u8) CLI {
         return .{
             .arena = std.heap.ArenaAllocator.init(allocator),
             .name = name,
             .description = description,
-            .flags = std.array_list.Managed(*Flag).init(allocator),
-            .positionals = std.array_list.Managed([]const u8).init(allocator),
+            .flags = .{},
+            .positionals = .{},
         };
     }
 
     pub fn deinit(self: *CLI) void {
-        self.flags.deinit();
-        self.positionals.deinit();
+        const allocator = self.arena.allocator();
+        self.flags.deinit(allocator);
+        self.positionals.deinit(allocator);
         self.arena.deinit();
     }
 
     pub fn flagBool(self: *CLI, name: []const u8, description: []const u8) !*Flag {
-        const flag = try self.arena.allocator().create(Flag);
+        const allocator = self.arena.allocator();
+        const flag = try allocator.create(Flag);
         flag.* = .{
             .name = name,
             .description = description,
             .isBoolFlag = true,
         };
-        try self.flags.append(flag);
+        try self.flags.append(allocator, flag);
         return flag;
     }
 
     pub fn flagValue(self: *CLI, name: []const u8, description: []const u8) !*Flag {
-        const flag = try self.arena.allocator().create(Flag);
+        const allocator = self.arena.allocator();
+        const flag = try allocator.create(Flag);
         flag.* = .{
             .name = name,
             .description = description,
             .isValueFlag = true,
         };
-        try self.flags.append(flag);
+        try self.flags.append(allocator, flag);
         return flag;
     }
 
     pub fn parse(self: *CLI, argv: [][:0]u8) ?ParseErr {
+        const allocator = self.arena.allocator();
         var i: usize = 1;
 
         while (i < argv.len) : (i += 1) {
             const arg = argv[i];
 
             if (!std.mem.startsWith(u8, arg, "-")) {
-                self.positionals.append(arg) catch {
+                self.positionals.append(allocator, arg) catch {
                     return ParseErr{ .arg = arg, .name = "internal error" };
                 };
                 continue;
@@ -106,22 +110,26 @@ pub const CLI = struct {
 
     pub fn generateHelpText(self: *CLI) ![]u8 {
         const allocator = self.arena.allocator();
-        var text = try std.fmt.allocPrint(allocator, "{s}\n{s}\n\nUsage:\n  {s}\n", .{ self.name, self.description, self.usage });
+        var buf: std.ArrayList(u8) = .{};
+        const writer = buf.writer(allocator);
+
+        try writer.print("{s}\n", .{self.name});
+        try writer.print("{s}\n", .{self.description});
+        try writer.print("\n", .{});
+        try writer.print("Usage:\n", .{});
+        try writer.print("  {s}\n", .{self.usage});
 
         if (self.flags.items.len > 0) {
-            const flagsHeader = try std.fmt.allocPrint(allocator, "\nFlags:\n", .{});
-            text = try std.mem.concat(allocator, u8, &[_][]const u8{ text, flagsHeader });
-
+            try writer.print("\n", .{});
+            try writer.print("Flags:\n", .{});
             for (self.flags.items) |flag| {
                 if (flag.alias != null) {
-                    const flagLine = try std.fmt.allocPrint(allocator, "  {s}, {s}\t{s}\n", .{ flag.alias.?, flag.name, flag.description });
-                    text = try std.mem.concat(allocator, u8, &[_][]const u8{ text, flagLine });
+                    try writer.print("  {s}, {s}\t{s}\n", .{ flag.alias.?, flag.name, flag.description });
                 } else {
-                    const flagLine = try std.fmt.allocPrint(allocator, "  {s}\t{s}\n", .{ flag.name, flag.description });
-                    text = try std.mem.concat(allocator, u8, &[_][]const u8{ text, flagLine });
+                    try writer.print("  {s}\t{s}\n", .{ flag.name, flag.description });
                 }
             }
         }
-        return text;
+        return buf.toOwnedSlice(allocator);
     }
 };
