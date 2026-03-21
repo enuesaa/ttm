@@ -25,6 +25,7 @@ pub fn main() !void {
     const helpFlag = try scli.flagBool("--help", "show help");
     const versionFlag = try scli.flagBool("--version", "show version");
     const initFlag = try scli.flagBool("--init", "print hook script for zsh");
+    const editFlag = try scli.flagBool("--edit", "edit ttm config file");
     const lsFlag = try scli.flagBool("--list", "list directories to move");
     lsFlag.alias = "-l";
 
@@ -44,6 +45,10 @@ pub fn main() !void {
     }
     if (initFlag.is) {
         try ttm.init(allocator);
+        return;
+    }
+    if (editFlag.is) {
+        try ttm.edit(allocator);
         return;
     }
     if (lsFlag.is) {

@@ -15,6 +15,17 @@ pub fn init(allocator: std.mem.Allocator) !void {
     std.debug.print("eval \"$({s})\"\n", .{hookScriptPath});
 }
 
+pub fn edit(allocator: std.mem.Allocator) !void {
+    const configPath = try pkgregistry.getConfigPath(allocator);
+    defer allocator.free(configPath);
+    const abspath = try pkgdir.abs(allocator, ".");
+    defer allocator.free(abspath);
+    const workdir = try pkgdir.open(allocator, abspath);
+    const command = try std.fmt.allocPrint(allocator, "code {s}", .{configPath});
+    defer allocator.free(command);
+    try pkgshell.start(allocator, workdir, command);
+}
+
 pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
