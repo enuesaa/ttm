@@ -10,6 +10,7 @@ pub const Path = struct {
 };
 
 pub const Config = struct {
+    editor: ?[]const u8,
     paths: []Path,
 
     pub fn getPath(self: *Config, name: []const u8) ?Path {
@@ -110,7 +111,10 @@ pub fn listup(allocator: std.mem.Allocator, config: Config) !void {
     }
 }
 
-pub fn getInstalledEditor(allocator: std.mem.Allocator) ![]const u8 {
+pub fn getInstalledEditor(allocator: std.mem.Allocator, config: Config) ![]const u8 {
+    if (config.editor) |editor| {
+        return editor;
+    }
     const isCodeExists = try pkgshell.isCommandExists(allocator, "code");
     if (isCodeExists) {
         return "code";

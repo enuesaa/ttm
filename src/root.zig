@@ -16,7 +16,9 @@ pub fn init(allocator: std.mem.Allocator) !void {
 }
 
 pub fn edit(allocator: std.mem.Allocator) !void {
-    const editor = pkgconfig.getInstalledEditor(allocator) catch |err| {
+    var parsed = try pkgconfig.get(allocator);
+    defer parsed.deinit();
+    const editor = pkgconfig.getInstalledEditor(allocator, parsed.config) catch |err| {
         std.debug.print("{}: failed to find editor. please specify editor path in config file\n", .{err});
         return;
     };
