@@ -25,3 +25,15 @@ pub fn start(allocator: std.mem.Allocator, workdir: std.fs.Dir, command: ?[]cons
 
     _ = try child.spawnAndWait();
 }
+
+pub fn isCommandExists(allocator: std.mem.Allocator, cmd: []const u8) !bool {
+    const result = try std.process.Child.run(.{
+        .allocator = allocator,
+        .argv = &[_][]const u8{ "which", cmd },
+    });
+    defer {
+        allocator.free(result.stdout);
+        allocator.free(result.stderr);
+    }
+    return result.term.Exited == 0;
+}

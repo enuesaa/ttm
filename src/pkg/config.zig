@@ -1,5 +1,6 @@
 const std = @import("std");
 const pkgregistry = @import("registry.zig");
+const pkgshell = @import("shell.zig");
 const toml = @import("toml");
 
 pub const Path = struct {
@@ -107,4 +108,16 @@ pub fn listup(allocator: std.mem.Allocator, config: Config) !void {
             std.debug.print("{s}  {s}  -\n", .{ colName, colPath });
         }
     }
+}
+
+pub fn getInstalledEditor(allocator: std.mem.Allocator) ![]const u8 {
+    const isCodeExists = try pkgshell.isCommandExists(allocator, "code");
+    if (isCodeExists) {
+        return "code";
+    }
+    const isVimExists = try pkgshell.isCommandExists(allocator, "vim");
+    if (isVimExists) {
+        return "vim";
+    }
+    return error.EditorNotFound;
 }

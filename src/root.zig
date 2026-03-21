@@ -16,12 +16,16 @@ pub fn init(allocator: std.mem.Allocator) !void {
 }
 
 pub fn edit(allocator: std.mem.Allocator) !void {
+    const editor = pkgconfig.getInstalledEditor(allocator) catch |err| {
+        std.debug.print("{}: failed to find editor. please specify editor path in config file\n", .{err});
+        return;
+    };
     const configPath = try pkgregistry.getConfigPath(allocator);
     defer allocator.free(configPath);
     const abspath = try pkgdir.abs(allocator, ".");
     defer allocator.free(abspath);
     const workdir = try pkgdir.open(allocator, abspath);
-    const command = try std.fmt.allocPrint(allocator, "code {s}", .{configPath});
+    const command = try std.fmt.allocPrint(allocator, "{s} {s}", .{ editor, configPath });
     defer allocator.free(command);
     try pkgshell.start(allocator, workdir, command);
 }
