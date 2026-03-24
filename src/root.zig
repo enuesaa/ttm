@@ -76,7 +76,10 @@ fn handleCancel(_: c_int) callconv(.c) void {
 }
 
 pub fn ls(allocator: std.mem.Allocator) !void {
-    var parsed = try pkgconfig.get(allocator);
+    var parsed = pkgconfig.get(allocator) catch |err| {
+        std.debug.print("failed to get config file because the error: {}\n", .{err});
+        return;
+    };
     defer parsed.deinit();
     try pkgconfig.listup(allocator, parsed.config);
 }
