@@ -62,13 +62,15 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     defer envvars.deinit();
     if (dest.?.envs) |evs| {
         for (evs) |ev| {
-            try envvars.put(ev.key, ev.value);
+            if (ev.ask) |askText| {
+                const askRet = try pkgprompt.ask(allocator, askText);
+                defer allocator.free(askRet);
+                try envvars.put(ev.key, askRet);
+            } else {
+                try envvars.put(ev.key, ev.value);
+            }
         }
     }
-    const ret = try pkgprompt.ask(allocator);
-    defer allocator.free(ret);
-    std.debug.print("ret: {s}\n", .{ret});
-
     try pkgshell.start(allocator, workdir, dest.?.command, &envvars);
 
     if (dest.?.onAfterCommand) |onAfterCommand| {

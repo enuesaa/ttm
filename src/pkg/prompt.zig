@@ -1,8 +1,8 @@
 const std = @import("std");
 
-pub fn ask(allocator: std.mem.Allocator) ![]u8 {
+pub fn ask(allocator: std.mem.Allocator, text: []const u8) ![]u8 {
     const stdin = std.fs.File.stdin();
-    std.debug.print("? Name: ", .{});
+    std.debug.print("? {s}: ", .{text});
 
     var buf: [100]u8 = undefined;
     var idx: usize = 0;
