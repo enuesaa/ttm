@@ -42,3 +42,14 @@ pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
 pub fn open(_: std.mem.Allocator, path: []const u8) !std.fs.Dir {
     return try std.fs.openDirAbsolute(path, .{});
 }
+
+pub fn exists(path: []const u8) bool {
+    std.fs.accessAbsolute(path, .{}) catch {
+        return false;
+    };
+    return true;
+}
+
+pub fn mkdir(path: []const u8) !void {
+    try std.fs.makeDirAbsolute(path);
+}

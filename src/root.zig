@@ -76,6 +76,12 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     defer allocator.free(destpath);
     const abspath = try pkgdir.abs(allocator, destpath);
     defer allocator.free(abspath);
+    if (!pkgdir.exists(abspath)) {
+        pkgdir.mkdir(abspath) catch |err| {
+            std.debug.print("error: failed to create dir {s} because of {}\n", .{ abspath, err });
+            return;
+        };
+    }
     const workdir = try pkgdir.open(allocator, abspath);
     if (dest.?.onBeforeCommand) |onBeforeCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onBeforeCommand, "\x1b[0m" });
