@@ -75,6 +75,10 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
             }
         }
     }
+    if (dest.?.onBeforeCommand) |onBeforeCommand| {
+        std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onBeforeCommand, "\x1b[0m" });
+        try pkgshell.start(allocator, workdir, onBeforeCommand, &envvars);
+    }
     try pkgshell.start(allocator, workdir, dest.?.command, &envvars);
 
     if (dest.?.onAfterCommand) |onAfterCommand| {
