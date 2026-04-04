@@ -21,7 +21,6 @@ pub fn marshal(allocator: std.mem.Allocator, path: []const u8, envvars: *std.pro
         defer allocator.free(pattern);
 
         if (std.mem.indexOf(u8, ret, pattern) != null) {
-            std.log.debug("replace: {s} -> {s}", .{ pattern, value });
             const replaced = try std.mem.replaceOwned(u8, allocator, ret, pattern, value);
             allocator.free(ret);
             ret = replaced;
@@ -39,7 +38,7 @@ pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
     return try std.fs.cwd().realpathAlloc(allocator, path);
 }
 
-pub fn open(_: std.mem.Allocator, path: []const u8) !std.fs.Dir {
+pub fn open(path: []const u8) !std.fs.Dir {
     return try std.fs.openDirAbsolute(path, .{});
 }
 

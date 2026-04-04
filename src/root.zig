@@ -27,7 +27,7 @@ pub fn edit(allocator: std.mem.Allocator) !void {
     defer allocator.free(configPath);
     const abspath = try pkgdir.abs(allocator, ".");
     defer allocator.free(abspath);
-    const workdir = try pkgdir.open(allocator, abspath);
+    const workdir = try pkgdir.open(abspath);
     const command = try std.fmt.allocPrint(allocator, "{s} {s}", .{ editor, configPath });
     defer allocator.free(command);
     var envvars = try pkgshell.getCurrentEnvVars(allocator);
@@ -82,7 +82,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
             return;
         };
     }
-    const workdir = try pkgdir.open(allocator, abspath);
+    const workdir = try pkgdir.open(abspath);
     if (dest.?.onBeforeCommand) |onBeforeCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onBeforeCommand, "\x1b[0m" });
         try pkgshell.start(allocator, workdir, onBeforeCommand, &envvars);

@@ -12,13 +12,13 @@ pub fn getRegistryPath(allocator: std.mem.Allocator) ![]u8 {
 pub fn isRegistryExist(allocator: std.mem.Allocator) !bool {
     const registry = try getRegistryPath(allocator);
     defer allocator.free(registry);
-    return if (std.fs.accessAbsolute(registry, .{})) |_| true else |_| false;
+    return pkgdir.exists(registry);
 }
 
 fn makeRegistry(allocator: std.mem.Allocator) !void {
     const registry = try getRegistryPath(allocator);
     defer allocator.free(registry);
-    try std.fs.makeDirAbsolute(registry);
+    try pkgdir.mkdir(registry);
 }
 
 pub fn make(allocator: std.mem.Allocator) !void {
@@ -53,7 +53,7 @@ pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
 pub fn isConfigExist(allocator: std.mem.Allocator) !bool {
     const configPath = try getConfigPath(allocator);
     defer allocator.free(configPath);
-    return if (std.fs.accessAbsolute(configPath, .{})) |_| true else |_| false;
+    return pkgdir.exists(configPath);
 }
 
 pub fn createInitialConfig(allocator: std.mem.Allocator) !void {
