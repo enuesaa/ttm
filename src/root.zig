@@ -3,6 +3,7 @@ const pkgregistry = @import("pkg/registry.zig");
 const pkgconfig = @import("pkg/config.zig");
 const pkgshell = @import("pkg/shell.zig");
 const pkgdir = @import("pkg/dir.zig");
+const pkgprompt = @import("pkg/prompt.zig");
 
 pub fn init(allocator: std.mem.Allocator) !void {
     try pkgregistry.make(allocator);
@@ -64,6 +65,10 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
             try envvars.put(ev.key, ev.value);
         }
     }
+    const ret = try pkgprompt.ask(allocator);
+    defer allocator.free(ret);
+    std.debug.print("ret: {s}\n", .{ret});
+
     try pkgshell.start(allocator, workdir, dest.?.command, &envvars);
 
     if (dest.?.onAfterCommand) |onAfterCommand| {
