@@ -44,8 +44,6 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
         std.debug.print("dest not found: {s}\n", .{cliTo});
         return;
     }
-    const abspath = try pkgdir.abs(allocator, dest.?.path);
-    defer allocator.free(abspath);
     std.debug.print("{s}*** {s} ***{s}\n", .{ "\x1b[33m", dest.?.path, "\x1b[0m" });
     if (dest.?.command) |cmd| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", cmd, "\x1b[0m" });
@@ -57,7 +55,6 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     };
     std.posix.sigaction(std.posix.SIG.INT, &act, null);
 
-    const workdir = try pkgdir.open(allocator, abspath);
     var envvars = try pkgshell.getCurrentEnvVars(allocator);
     defer envvars.deinit();
     if (dest.?.envs) |evs| {
@@ -75,6 +72,11 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
             }
         }
     }
+    const destpath = try pkgdir.marshal(allocator, dest.?.path, &envvars);
+    defer allocator.free(destpath);
+    const abspath = try pkgdir.abs(allocator, destpath);
+    defer allocator.free(abspath);
+    const workdir = try pkgdir.open(allocator, abspath);
     if (dest.?.onBeforeCommand) |onBeforeCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onBeforeCommand, "\x1b[0m" });
         try pkgshell.start(allocator, workdir, onBeforeCommand, &envvars);
