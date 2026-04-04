@@ -29,7 +29,9 @@ pub fn edit(allocator: std.mem.Allocator) !void {
     const workdir = try pkgdir.open(allocator, abspath);
     const command = try std.fmt.allocPrint(allocator, "{s} {s}", .{ editor, configPath });
     defer allocator.free(command);
-    try pkgshell.start(allocator, workdir, command);
+    var envvars = try pkgshell.getCurrentEnvVars(allocator);
+    defer envvars.deinit();
+    try pkgshell.start(allocator, workdir, command, &envvars);
 }
 
 pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
@@ -55,11 +57,18 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     std.posix.sigaction(std.posix.SIG.INT, &act, null);
 
     const workdir = try pkgdir.open(allocator, abspath);
-    try pkgshell.startC(allocator, workdir, dest.?.command, dest.?.envs);
+    var envvars = try pkgshell.getCurrentEnvVars(allocator);
+    defer envvars.deinit();
+    if (dest.?.envs) |evs| {
+        for (evs) |ev| {
+            try envvars.put(ev.key, ev.value);
+        }
+    }
+    try pkgshell.start(allocator, workdir, dest.?.command, &envvars);
 
     if (dest.?.onAfterCommand) |onAfterCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onAfterCommand, "\x1b[0m" });
-        try pkgshell.startC(allocator, workdir, onAfterCommand, dest.?.envs);
+        try pkgshell.start(allocator, workdir, onAfterCommand, &envvars);
     }
 }
 
