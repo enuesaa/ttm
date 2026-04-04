@@ -65,6 +65,10 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
             if (ev.ask) |askText| {
                 const askRet = try pkgprompt.ask(allocator, askText, ev.value);
                 defer allocator.free(askRet);
+                if (ev.required != null and ev.required.? == true and std.mem.eql(u8, askRet, "")) {
+                    std.debug.print("error: {s} is required\n", .{ev.key});
+                    return;
+                }
                 try envvars.put(ev.key, askRet);
             } else {
                 try envvars.put(ev.key, ev.value);

@@ -2,7 +2,11 @@ const std = @import("std");
 
 pub fn ask(allocator: std.mem.Allocator, text: []const u8, defaultValue: []const u8) ![]u8 {
     const stdin = std.fs.File.stdin();
-    std.debug.print("? {s} (default {s}): ", .{ text, defaultValue });
+    if (std.mem.eql(u8, defaultValue, "")) {
+        std.debug.print("{s}? {s}: {s}", .{ "\x1b[33m", text, "\x1b[0m" });
+    } else {
+        std.debug.print("{s}? {s} (default {s}): {s}", .{ "\x1b[33m", text, defaultValue, "\x1b[0m" });
+    }
 
     var buf: [100]u8 = undefined;
     var idx: usize = 0;
