@@ -1,8 +1,8 @@
 const std = @import("std");
 
-pub fn ask(allocator: std.mem.Allocator, text: []const u8) ![]u8 {
+pub fn ask(allocator: std.mem.Allocator, text: []const u8, defaultValue: []const u8) ![]u8 {
     const stdin = std.fs.File.stdin();
-    std.debug.print("? {s}: ", .{text});
+    std.debug.print("? {s} (default {s}): ", .{ text, defaultValue });
 
     var buf: [100]u8 = undefined;
     var idx: usize = 0;
@@ -17,7 +17,7 @@ pub fn ask(allocator: std.mem.Allocator, text: []const u8) ![]u8 {
         idx += 1;
     }
     if (idx == 0) {
-        return "";
+        return try allocator.dupe(u8, defaultValue);
     }
     return try allocator.dupe(u8, buf[0..idx]);
 }

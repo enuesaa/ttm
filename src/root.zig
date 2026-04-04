@@ -63,7 +63,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     if (dest.?.envs) |evs| {
         for (evs) |ev| {
             if (ev.ask) |askText| {
-                const askRet = try pkgprompt.ask(allocator, askText);
+                const askRet = try pkgprompt.ask(allocator, askText, ev.value);
                 defer allocator.free(askRet);
                 try envvars.put(ev.key, askRet);
             } else {
