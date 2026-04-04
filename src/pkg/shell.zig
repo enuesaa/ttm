@@ -1,4 +1,5 @@
 const std = @import("std");
+const pkgconfig = @import("config.zig");
 
 fn buildTTMNestedEnvVar(allocator: std.mem.Allocator) ![]const u8 {
     const original = std.process.getEnvVarOwned(allocator, "TTM_NESTED") catch "";
@@ -20,6 +21,28 @@ pub fn start(allocator: std.mem.Allocator, workdir: std.fs.Dir, command: ?[]cons
     var env = try std.process.getEnvMap(allocator);
     try env.put("TTM", "true");
     try env.put("TTM_NESTED", ttmNested);
+    defer env.deinit();
+    child.env_map = &env;
+
+    _ = try child.spawnAndWait();
+}
+
+pub fn startC(allocator: std.mem.Allocator, workdir: std.fs.Dir, command: ?[]const u8, envvars: ?[]pkgconfig.Env) !void {
+    const ttmNested = try buildTTMNestedEnvVar(allocator);
+    defer allocator.free(ttmNested);
+
+    const argv = if (command == null) &[_][]const u8{"zsh"} else &[_][]const u8{ "sh", "-c", command.? };
+    var child = std.process.Child.init(argv, allocator);
+    child.cwd_dir = workdir;
+
+    var env = try std.process.getEnvMap(allocator);
+    try env.put("TTM", "true");
+    try env.put("TTM_NESTED", ttmNested);
+    if (envvars) |evs| {
+        for (evs) |ev| {
+            try env.put(ev.key, ev.value);
+        }
+    }
     defer env.deinit();
     child.env_map = &env;
 

@@ -3,11 +3,18 @@ const pkgregistry = @import("registry.zig");
 const pkgshell = @import("shell.zig");
 const toml = @import("toml");
 
+pub const Env = struct {
+    key: []const u8,
+    value: []const u8,
+    ask: ?[]const u8 = null,
+};
+
 pub const Path = struct {
     name: []const u8,
     path: []const u8,
     command: ?[]const u8,
     onAfterCommand: ?[]const u8,
+    envs: ?[]Env = null,
 };
 
 pub const Config = struct {

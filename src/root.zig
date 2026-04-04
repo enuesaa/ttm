@@ -55,11 +55,11 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     std.posix.sigaction(std.posix.SIG.INT, &act, null);
 
     const workdir = try pkgdir.open(allocator, abspath);
-    try pkgshell.start(allocator, workdir, dest.?.command);
+    try pkgshell.startC(allocator, workdir, dest.?.command, dest.?.envs);
 
     if (dest.?.onAfterCommand) |onAfterCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onAfterCommand, "\x1b[0m" });
-        try pkgshell.start(allocator, workdir, onAfterCommand);
+        try pkgshell.startC(allocator, workdir, onAfterCommand, dest.?.envs);
     }
 }
 
