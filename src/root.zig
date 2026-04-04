@@ -25,9 +25,7 @@ pub fn edit(allocator: std.mem.Allocator) !void {
     };
     const configPath = try pkgregistry.getConfigPath(allocator);
     defer allocator.free(configPath);
-    const abspath = try pkgdir.abs(allocator, ".");
-    defer allocator.free(abspath);
-    const workdir = try pkgdir.open(abspath);
+    const workdir = try pkgdir.openr(allocator, ".");
     const command = try std.fmt.allocPrint(allocator, "{s} {s}", .{ editor, configPath });
     defer allocator.free(command);
     var envvars = try pkgshell.getCurrentEnvVars(allocator);
@@ -45,9 +43,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
         return;
     }
     std.debug.print("{s}*** {s} ***{s}\n", .{ "\x1b[33m", dest.?.path, "\x1b[0m" });
-    if (dest.?.command) |cmd| {
-        std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", cmd, "\x1b[0m" });
-    }
+
     const act = std.posix.Sigaction{
         .handler = .{ .handler = handleCancel },
         .mask = std.posix.sigemptyset(),
@@ -72,20 +68,21 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
             }
         }
     }
-    const destpath = try pkgdir.marshal(allocator, dest.?.path, &envvars);
+    const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envvars);
     defer allocator.free(destpath);
-    const abspath = try pkgdir.abs(allocator, destpath);
-    defer allocator.free(abspath);
-    if (!pkgdir.exists(abspath)) {
-        pkgdir.mkdir(abspath) catch |err| {
-            std.debug.print("error: failed to create dir {s} because of {}\n", .{ abspath, err });
+    if (!pkgdir.exists(destpath)) {
+        pkgdir.mkdir(destpath) catch |err| {
+            std.debug.print("error: failed to create dir {s} because of {}\n", .{ destpath, err });
             return;
         };
     }
-    const workdir = try pkgdir.open(abspath);
+    const workdir = try pkgdir.open(destpath);
     if (dest.?.onBeforeCommand) |onBeforeCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onBeforeCommand, "\x1b[0m" });
         try pkgshell.start(allocator, workdir, onBeforeCommand, &envvars);
+    }
+    if (dest.?.command) |cmd| {
+        std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", cmd, "\x1b[0m" });
     }
     try pkgshell.start(allocator, workdir, dest.?.command, &envvars);
 

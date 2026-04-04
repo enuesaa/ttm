@@ -38,8 +38,20 @@ pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
     return try std.fs.cwd().realpathAlloc(allocator, path);
 }
 
+pub fn marshalabs(allocator: std.mem.Allocator, path: []const u8, envvars: *std.process.EnvMap) ![]const u8 {
+    const bpath = try marshal(allocator, path, envvars);
+    defer allocator.free(bpath);
+    return try abs(allocator, bpath);
+}
+
 pub fn open(path: []const u8) !std.fs.Dir {
     return try std.fs.openDirAbsolute(path, .{});
+}
+
+pub fn openr(allocator: std.mem.Allocator, path: []const u8) !std.fs.Dir {
+    const abspath = try abs(allocator, path);
+    defer allocator.free(abspath);
+    return try open(abspath);
 }
 
 pub fn exists(path: []const u8) bool {
