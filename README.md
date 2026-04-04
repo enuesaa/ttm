@@ -57,5 +57,3 @@ path = ".."
 ```
 
 - history
-- env vars
-- prompt
