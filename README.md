@@ -28,19 +28,14 @@ ttm .. # move to parent dir
 
 設定ファイル
 
-```json
-{
-  "paths": {
-    "default": {
-      // `ttm` でここに移動するイメージ
-      "path": "$HOME/repos"
-    },
-    "@": {
-      // `ttm @` でここに移動するイメージ
-      "path": "$HOME/tmp"
-    }
-  }
-}
+```toml
+[[paths]]
+name = "default"
+path = "~"
+
+[[paths]]
+name = ".."
+path = ".."
 ```
 
 ## feature plans
@@ -62,4 +57,5 @@ ttm .. # move to parent dir
 ```
 
 - history
-- commands
+- env vars
+- prompt
