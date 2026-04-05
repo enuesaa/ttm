@@ -28,6 +28,7 @@ pub fn main() !void {
     const editFlag = try scli.flagBool("-edit", "edit ttm config file");
     const lsFlag = try scli.flagBool("-ls", "list directories to move");
     lsFlag.alias = "-l";
+    const lastFlag = try scli.flagBool("-last", "open last-used dir. this is experimental");
 
     const err = scli.parse(args);
     if (err != null) {
@@ -53,6 +54,10 @@ pub fn main() !void {
     }
     if (lsFlag.is) {
         try ttm.ls(allocator);
+        return;
+    }
+    if (lastFlag.is) {
+        try ttm.last(allocator);
         return;
     }
 

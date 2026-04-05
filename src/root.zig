@@ -115,3 +115,13 @@ pub fn ls(allocator: std.mem.Allocator) !void {
     defer parsed.deinit();
     try pkgconfig.listup(allocator, parsed.config);
 }
+
+// experimental
+pub fn last(allocator: std.mem.Allocator) !void {
+    const destpath = try pkgexpsessionmark.get(allocator);
+    defer allocator.free(destpath);
+    const workdir = try pkgdir.open(destpath);
+    var envvars = try pkgshell.getCurrentEnvVars(allocator);
+    defer envvars.deinit();
+    try pkgshell.start(allocator, workdir, null, &envvars);
+}
