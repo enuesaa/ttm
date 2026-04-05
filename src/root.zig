@@ -4,6 +4,7 @@ const pkgconfig = @import("pkg/config.zig");
 const pkgshell = @import("pkg/shell.zig");
 const pkgdir = @import("pkg/dir.zig");
 const pkgprompt = @import("pkg/prompt.zig");
+const pkgexpsessionmark = @import("pkg/expsessionmark.zig");
 
 pub fn init(allocator: std.mem.Allocator) !void {
     try pkgregistry.make(allocator);
@@ -84,7 +85,9 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     if (dest.?.command) |cmd| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", cmd, "\x1b[0m" });
     }
+    pkgexpsessionmark.create(allocator, destpath) catch {};
     try pkgshell.start(allocator, workdir, dest.?.command, &envvars);
+    pkgexpsessionmark.delete(allocator) catch {};
 
     if (dest.?.onAfterCommand) |onAfterCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onAfterCommand, "\x1b[0m" });
