@@ -26,7 +26,7 @@ pub fn main() !void {
     const versionFlag = try scli.flagBool("-version", "show version");
     const initFlag = try scli.flagBool("-init", "print hook script for zsh");
     const editFlag = try scli.flagBool("-edit", "edit ttm config file");
-    const lsFlag = try scli.flagBool("-ls", "list directories to move");
+    const lsFlag = try scli.flagBool("-list", "list directories to move");
     lsFlag.alias = "-l";
 
     const err = scli.parse(args);
@@ -55,13 +55,12 @@ pub fn main() !void {
         try ttm.ls(allocator);
         return;
     }
-
-    if (scli.positionals.items.len > 1) {
-        try ttm.cdexec(allocator, scli.positionals.items[0], scli.positionals.items[1..]);
-        return;
-    }
     if (scli.positionals.items.len == 1) {
         try ttm.cd(allocator, scli.positionals.items[0]);
+        return;
+    }
+    if (scli.positionals.items.len > 1) {
+        try ttm.cdexec(allocator, scli.positionals.items[0], scli.positionals.items[1..]);
         return;
     }
     ttm.last(allocator) catch {

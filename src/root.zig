@@ -1,4 +1,5 @@
 const std = @import("std");
+const pkglog = @import("pkg/log.zig");
 const pkgregistry = @import("pkg/registry.zig");
 const pkgconfig = @import("pkg/config.zig");
 const pkgshell = @import("pkg/shell.zig");
@@ -76,7 +77,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     }
 }
 
-// NOTE: 開発時注意。zig build run -- が ctrl+c をキャッチして終了してしまう
+// NOTE: 開発時注意. zig build run -- が ctrl+c をキャッチして終了してしまう
 fn hookCancel() void {
     const act = std.posix.Sigaction{
         .handler = .{ .handler = handleCancel },
@@ -126,9 +127,9 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]con
         std.debug.print("dest not found: {s}\n", .{cliTo});
         return;
     }
-    std.debug.print("{s}*** InstantCommandExecution is an experimental feature ***{s}\n", .{ "\x1b[33m", "\x1b[0m" });
-    std.debug.print("{s}*** {s} ***{s}\n", .{ "\x1b[33m", dest.?.path, "\x1b[0m" });
-    std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", command, "\x1b[0m" });
+    pkglog.infoln("*** InstantCommandExecution is an experimental feature ***", .{});
+    pkglog.infoln("*** {s} ***", .{dest.?.path});
+    pkglog.infoln("* {s}", .{command});
 
     var envvars = buildEnvVars(allocator, dest) catch |err| {
         std.debug.print("error: failed to build env vars because of {}\n", .{err});
