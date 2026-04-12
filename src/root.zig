@@ -37,20 +37,12 @@ pub fn edit(allocator: std.mem.Allocator) !void {
 pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
-
     const dest = parsed.config.getPath(cliTo);
     if (dest == null) {
         std.debug.print("dest not found: {s}\n", .{cliTo});
         return;
     }
     std.debug.print("{s}*** {s} ***{s}\n", .{ "\x1b[33m", dest.?.path, "\x1b[0m" });
-
-    const act = std.posix.Sigaction{
-        .handler = .{ .handler = handleCancel },
-        .mask = std.posix.sigemptyset(),
-        .flags = 0,
-    };
-    std.posix.sigaction(std.posix.SIG.INT, &act, null);
 
     var envvars = buildEnvVars(allocator, dest) catch |err| {
         std.debug.print("error: failed to build env vars because of {}\n", .{err});
@@ -72,6 +64,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     }
     if (dest.?.command) |cmd| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", cmd, "\x1b[0m" });
+        hookCancel();
     }
     pkgexpsessionmark.create(allocator, destpath) catch {};
     try pkgshell.start(allocator, workdir, dest.?.command, &envvars);
@@ -83,9 +76,17 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     }
 }
 
+// NOTE: 開発時注意。zig build run -- が ctrl+c をキャッチして終了してしまう
+fn hookCancel() void {
+    const act = std.posix.Sigaction{
+        .handler = .{ .handler = handleCancel },
+        .mask = std.posix.sigemptyset(),
+        .flags = 0,
+    };
+    std.posix.sigaction(std.posix.SIG.INT, &act, null);
+}
 var canceling = false;
 
-// NOTE: 開発時注意。zig build run -- が ctrl+c をキャッチして終了してしまう
 fn handleCancel(_: c_int) callconv(.c) void {
     if (!canceling) {
         canceling = true;
@@ -118,7 +119,6 @@ pub fn last(allocator: std.mem.Allocator) !void {
 pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]const u8) !void {
     const command = try std.mem.join(allocator, " ", commands);
     defer allocator.free(command);
-
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
     const dest = parsed.config.getPath(cliTo);
