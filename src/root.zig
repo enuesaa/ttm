@@ -52,23 +52,11 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     };
     std.posix.sigaction(std.posix.SIG.INT, &act, null);
 
-    var envvars = try pkgshell.getCurrentEnvVars(allocator);
+    var envvars = buildEnvVars(allocator, dest) catch |err| {
+        std.debug.print("error: failed to build env vars because of {}\n", .{err});
+        return;
+    };
     defer envvars.deinit();
-    if (dest.?.envs) |evs| {
-        for (evs) |ev| {
-            if (ev.ask) |askText| {
-                const askRet = try pkgprompt.ask(allocator, askText, ev.value);
-                defer allocator.free(askRet);
-                if (ev.required != null and ev.required.? == true and std.mem.eql(u8, askRet, "")) {
-                    std.debug.print("error: {s} is required\n", .{ev.key});
-                    return;
-                }
-                try envvars.put(ev.key, askRet);
-            } else {
-                try envvars.put(ev.key, ev.value);
-            }
-        }
-    }
     const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envvars);
     defer allocator.free(destpath);
     if (!pkgdir.exists(destpath)) {
@@ -128,9 +116,11 @@ pub fn last(allocator: std.mem.Allocator) !void {
 
 // experimental
 pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]const u8) !void {
+    const command = try std.mem.join(allocator, " ", commands);
+    defer allocator.free(command);
+
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
-
     const dest = parsed.config.getPath(cliTo);
     if (dest == null) {
         std.debug.print("dest not found: {s}\n", .{cliTo});
@@ -138,12 +128,12 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]con
     }
     std.debug.print("{s}*** InstantCommandExecution is an experimental feature ***{s}\n", .{ "\x1b[33m", "\x1b[0m" });
     std.debug.print("{s}*** {s} ***{s}\n", .{ "\x1b[33m", dest.?.path, "\x1b[0m" });
-
-    const command = try std.mem.join(allocator, " ", commands);
-    defer allocator.free(command);
     std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", command, "\x1b[0m" });
 
-    var envvars = try pkgshell.getCurrentEnvVars(allocator);
+    var envvars = buildEnvVars(allocator, dest) catch |err| {
+        std.debug.print("error: failed to build env vars because of {}\n", .{err});
+        return;
+    };
     defer envvars.deinit();
     const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envvars);
     defer allocator.free(destpath);
@@ -155,4 +145,25 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]con
     }
     const workdir = try pkgdir.open(destpath);
     try pkgshell.start(allocator, workdir, command, &envvars);
+}
+
+fn buildEnvVars(allocator: std.mem.Allocator, dest: ?pkgconfig.Path) !std.process.EnvMap {
+    var envvars = try pkgshell.getCurrentEnvVars(allocator);
+    if (dest.?.envs) |evs| {
+        for (evs) |ev| {
+            if (ev.ask) |askText| {
+                const askRet = try pkgprompt.ask(allocator, askText, ev.value);
+                defer allocator.free(askRet);
+                if (ev.required != null and ev.required.? == true and std.mem.eql(u8, askRet, "")) {
+                    envvars.deinit();
+                    std.debug.print("error: {s} is required\n", .{ev.key});
+                    return error.failedToBuildEnvVars;
+                }
+                try envvars.put(ev.key, askRet);
+            } else {
+                try envvars.put(ev.key, ev.value);
+            }
+        }
+    }
+    return envvars;
 }

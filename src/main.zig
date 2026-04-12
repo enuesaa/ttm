@@ -55,10 +55,6 @@ pub fn main() !void {
         try ttm.ls(allocator);
         return;
     }
-    // if (lastFlag.is) {
-    //     try ttm.last(allocator);
-    //     return;
-    // }
 
     if (scli.positionals.items.len > 1) {
         try ttm.cdexec(allocator, scli.positionals.items[0], scli.positionals.items[1..]);
