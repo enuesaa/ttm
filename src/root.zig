@@ -130,7 +130,7 @@ pub fn last(allocator: std.mem.Allocator) !void {
 }
 
 // experimental
-pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, command: []const u8) !void {
+pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]const u8) !void {
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
 
@@ -139,7 +139,12 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, command: []const 
         std.debug.print("dest not found: {s}\n", .{cliTo});
         return;
     }
+    std.debug.print("{s}*** InstantCommandExecution is an experimental feature ***{s}\n", .{ "\x1b[33m", "\x1b[0m" });
     std.debug.print("{s}*** {s} ***{s}\n", .{ "\x1b[33m", dest.?.path, "\x1b[0m" });
+
+    const command = try std.mem.join(allocator, " ", commands);
+    defer allocator.free(command);
+    std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", command, "\x1b[0m" });
 
     var envvars = try pkgshell.getCurrentEnvVars(allocator);
     defer envvars.deinit();
