@@ -28,7 +28,6 @@ pub fn main() !void {
     const editFlag = try scli.flagBool("-edit", "edit ttm config file");
     const lsFlag = try scli.flagBool("-ls", "list directories to move");
     lsFlag.alias = "-l";
-    const lastFlag = try scli.flagBool("-last", "open last-used dir. this is experimental");
 
     const err = scli.parse(args);
     if (err != null) {
@@ -56,10 +55,10 @@ pub fn main() !void {
         try ttm.ls(allocator);
         return;
     }
-    if (lastFlag.is) {
-        try ttm.last(allocator);
-        return;
-    }
+    // if (lastFlag.is) {
+    //     try ttm.last(allocator);
+    //     return;
+    // }
 
     if (scli.positionals.items.len > 1) {
         try ttm.cdexec(allocator, scli.positionals.items[0], scli.positionals.items[1..]);
@@ -69,5 +68,10 @@ pub fn main() !void {
         try ttm.cd(allocator, scli.positionals.items[0]);
         return;
     }
-    try ttm.cd(allocator, "default");
+    ttm.last(allocator) catch {
+        std.debug.print("error: failed to find last session.\n", .{});
+        std.debug.print("\n", .{});
+        try ttm.ls(allocator);
+        return;
+    };
 }
