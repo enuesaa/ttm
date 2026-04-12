@@ -29,7 +29,7 @@ pub fn main() !void {
     const lsFlag = try scli.flagBool("-ls", "list directories to move");
     lsFlag.alias = "-l";
     const lastFlag = try scli.flagBool("-last", "open last-used dir. this is experimental");
-    const execFlag = try scli.flagBool("-exec", "exec command. this is experimental");
+    const execFlag = try scli.flagValue("-exec", "exec command. this is experimental");
     execFlag.alias = "-e";
 
     const err = scli.parse(args);
@@ -63,7 +63,8 @@ pub fn main() !void {
         return;
     }
     if (execFlag.is) {
-        try ttm.cdexec(allocator, scli.positionals.items[0], execFlag);
+        try ttm.cdexec(allocator, scli.positionals.items[0], execFlag.value.?);
+        return;
     }
 
     if (scli.positionals.items.len > 1) {
