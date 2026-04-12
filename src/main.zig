@@ -29,6 +29,8 @@ pub fn main() !void {
     const lsFlag = try scli.flagBool("-ls", "list directories to move");
     lsFlag.alias = "-l";
     const lastFlag = try scli.flagBool("-last", "open last-used dir. this is experimental");
+    const execFlag = try scli.flagBool("-exec", "exec command. this is experimental");
+    execFlag.alias = "-e";
 
     const err = scli.parse(args);
     if (err != null) {
@@ -59,6 +61,9 @@ pub fn main() !void {
     if (lastFlag.is) {
         try ttm.last(allocator);
         return;
+    }
+    if (execFlag.is) {
+        try ttm.cdexec(allocator, scli.positionals.items[0], execFlag);
     }
 
     if (scli.positionals.items.len > 1) {
