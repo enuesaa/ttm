@@ -118,7 +118,10 @@ pub fn ls(allocator: std.mem.Allocator) !void {
 
 // experimental
 pub fn last(allocator: std.mem.Allocator) !void {
-    const destpath = try pkgexpsessionmark.get(allocator);
+    const destpath = pkgexpsessionmark.get(allocator) catch |err| {
+        std.debug.print("error: failed to find last session because of {}\n", .{err});
+        return;
+    };
     defer allocator.free(destpath);
     const workdir = try pkgdir.open(destpath);
     var envvars = try pkgshell.getCurrentEnvVars(allocator);
