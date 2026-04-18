@@ -13,7 +13,7 @@ pub fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
     return error.RuntimeError;
 }
 
-pub fn marshal(allocator: std.mem.Allocator, path: []const u8, envvars: *std.process.EnvMap) ![]u8 {
+pub fn marshal(allocator: std.mem.Allocator, path: []const u8, envvars: *std.process.Environ.Map) ![]u8 {
     var ret = try allocator.dupe(u8, path);
     var it = envvars.iterator();
     while (it.next()) |entry| {
@@ -38,10 +38,10 @@ pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
         defer allocator.free(homeDir);
         return try std.fs.path.join(allocator, &.{ homeDir, path[1..] });
     }
-    return try std.Io.Dir.realPathFileAbsoluteAlloc(allocator, path);
+    return try std.Io.Dir.realPathFileAbsoluteAlloc(io.?, path, allocator);
 }
 
-pub fn marshalabs(allocator: std.mem.Allocator, path: []const u8, envvars: *std.process.EnvMap) ![]const u8 {
+pub fn marshalabs(allocator: std.mem.Allocator, path: []const u8, envvars: *std.process.Environ.Map) ![]const u8 {
     const bpath = try marshal(allocator, path, envvars);
     defer allocator.free(bpath);
     return try abs(allocator, bpath);

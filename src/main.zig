@@ -46,7 +46,7 @@ pub fn main(init: std.process.Init) !void {
         return;
     }
     if (editFlag.is) {
-        try ttm.edit(allocator);
+        try ttm.edit(allocator, init.environ_map);
         return;
     }
     if (lsFlag.is) {
@@ -54,14 +54,14 @@ pub fn main(init: std.process.Init) !void {
         return;
     }
     if (scli.positionals.items.len == 1) {
-        try ttm.cd(allocator, scli.positionals.items[0]);
+        try ttm.cd(allocator, scli.positionals.items[0], init.environ_map);
         return;
     }
     if (scli.positionals.items.len > 1) {
-        try ttm.cdexec(allocator, scli.positionals.items[0], scli.positionals.items[1..]);
+        try ttm.cdexec(allocator, scli.positionals.items[0], scli.positionals.items[1..], init.environ_map);
         return;
     }
-    ttm.last(allocator) catch {
+    ttm.last(allocator, init.environ_map) catch {
         std.debug.print("error: failed to find last session.\n", .{});
         std.debug.print("\n", .{});
         try ttm.ls(allocator);
