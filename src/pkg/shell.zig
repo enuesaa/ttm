@@ -12,7 +12,6 @@ fn buildTTMNestedEnvVar(allocator: std.mem.Allocator) ![]const u8 {
     if (original == null) {
         return allocator.dupe(u8, "*");
     }
-    defer allocator.free(original.?);
     return try std.mem.concat(allocator, u8, &.{ original.?, "*" });
 }
 
@@ -23,9 +22,10 @@ pub fn start(allocator: std.mem.Allocator, workdir: std.Io.Dir, command: ?[]cons
     try envvars.put("TTM_NESTED", ttmNested);
 
     const argv = if (command == null) &[_][]const u8{"zsh"} else &[_][]const u8{ "sh", "-c", command.? };
-    var child = try std.process.spawnPath(io.?, workdir, .{
+    var child = try std.process.spawn(io.?, .{
         .argv = argv,
         .environ_map = envmap,
+        .cwd = .{ .dir = workdir },
     });
     _ = try child.wait(io.?);
 }

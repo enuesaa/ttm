@@ -38,7 +38,7 @@ pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
         defer allocator.free(homeDir);
         return try std.fs.path.join(allocator, &.{ homeDir, path[1..] });
     }
-    return try std.Io.Dir.realPathFileAbsoluteAlloc(io.?, path, allocator);
+    return try std.Io.Dir.cwd().realPathFileAlloc(io.?, path, allocator);
 }
 
 pub fn marshalabs(allocator: std.mem.Allocator, path: []const u8, envvars: *std.process.Environ.Map) ![]const u8 {
@@ -49,12 +49,6 @@ pub fn marshalabs(allocator: std.mem.Allocator, path: []const u8, envvars: *std.
 
 pub fn open(path: []const u8) !std.Io.Dir {
     return try std.Io.Dir.openDirAbsolute(io.?, path, .{});
-}
-
-pub fn openr(allocator: std.mem.Allocator, path: []const u8) !std.Io.Dir {
-    const abspath = try abs(allocator, path);
-    defer allocator.free(abspath);
-    return try open(abspath);
 }
 
 pub fn exists(path: []const u8) bool {
