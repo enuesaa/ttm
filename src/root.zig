@@ -7,8 +7,10 @@ const pkgdir = @import("pkg/dir.zig");
 const pkgprompt = @import("pkg/prompt.zig");
 const pkgexpsessionmark = @import("pkg/expsessionmark.zig");
 
-pub fn setEnvMap(envmap: *std.process.Environ.Map) void {
+pub fn setEnvMap(envmap: *std.process.Environ.Map, io: std.Io) void {
     pkgdir.envmap = envmap;
+    pkgdir.io = io;
+    pkgregistry.io = io;
 }
 
 pub fn init(allocator: std.mem.Allocator) !void {

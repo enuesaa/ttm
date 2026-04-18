@@ -3,6 +3,8 @@ const pkgdir = @import("dir.zig");
 const hooksh = @embedFile("registryhook.sh");
 const initialConfig = @embedFile("registryconfig.toml");
 
+pub var io: ?std.Io = null;
+
 pub fn getRegistryPath(allocator: std.mem.Allocator) ![]u8 {
     const homedir = try pkgdir.getHomeDir(allocator);
     defer allocator.free(homedir);
@@ -37,9 +39,7 @@ pub fn getHookScriptPath(allocator: std.mem.Allocator) ![]u8 {
 pub fn createHookScript(allocator: std.mem.Allocator) !void {
     const hookScriptPath = try getHookScriptPath(allocator);
     defer allocator.free(hookScriptPath);
-    const file = try std.fs.cwd().createFile(hookScriptPath, .{
-        .mode = 0o755,
-    });
+    const file = try std.Io.Dir.cwd().createFile(io.?, hookScriptPath, .{});
     defer file.close();
     try file.writeAll(hooksh);
 }
@@ -63,9 +63,7 @@ pub fn createInitialConfig(allocator: std.mem.Allocator) !void {
     }
     const configPath = try getConfigPath(allocator);
     defer allocator.free(configPath);
-    const file = try std.fs.cwd().createFile(configPath, .{
-        .mode = 0o755,
-    });
+    const file = try std.Io.Dir.cwd().createFile(io.?, configPath, .{});
     defer file.close();
     try file.writeAll(initialConfig);
 }

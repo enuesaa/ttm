@@ -1,6 +1,7 @@
 const std = @import("std");
 
 pub var envmap: ?*std.process.Environ.Map = null;
+pub var io: ?std.Io = null;
 
 pub fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
     if (envmap == null) {
@@ -37,7 +38,7 @@ pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
         defer allocator.free(homeDir);
         return try std.fs.path.join(allocator, &.{ homeDir, path[1..] });
     }
-    return try std.fs.cwd().realpathAlloc(allocator, path);
+    return try std.Io.Dir.realPathFileAbsoluteAlloc(allocator, path);
 }
 
 pub fn marshalabs(allocator: std.mem.Allocator, path: []const u8, envvars: *std.process.EnvMap) ![]const u8 {
@@ -46,23 +47,23 @@ pub fn marshalabs(allocator: std.mem.Allocator, path: []const u8, envvars: *std.
     return try abs(allocator, bpath);
 }
 
-pub fn open(path: []const u8) !std.fs.Dir {
-    return try std.fs.openDirAbsolute(path, .{});
+pub fn open(path: []const u8) !std.Io.Dir {
+    return try std.Io.Dir.openDirAbsolute(io.?, path, .{});
 }
 
-pub fn openr(allocator: std.mem.Allocator, path: []const u8) !std.fs.Dir {
+pub fn openr(allocator: std.mem.Allocator, path: []const u8) !std.Io.Dir {
     const abspath = try abs(allocator, path);
     defer allocator.free(abspath);
     return try open(abspath);
 }
 
 pub fn exists(path: []const u8) bool {
-    std.fs.accessAbsolute(path, .{}) catch {
+    std.Io.Dir.accessAbsolute(io.?, path, .{}) catch {
         return false;
     };
     return true;
 }
 
 pub fn mkdir(path: []const u8) !void {
-    try std.fs.makeDirAbsolute(path);
+    try std.Io.Dir.createDirAbsolute(io.?, path, .default_dir);
 }
