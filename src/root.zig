@@ -14,6 +14,8 @@ pub fn setEnvMap(envmap: *std.process.Environ.Map, io: std.Io) void {
     pkgconfig.io = io;
     pkgshell.io = io;
     pkgshell.envmap = envmap;
+    pkgprompt.io = io;
+    pkgexpsessionmark.io = io;
 }
 
 pub fn init(allocator: std.mem.Allocator) !void {
@@ -57,7 +59,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8, envmap: *std.process.
         return;
     };
     defer envvars.deinit();
-    const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envvars);
+    const destpath = try pkgdir.marshalabs(allocator, dest.?.path, envvars);
     defer allocator.free(destpath);
     if (!pkgdir.exists(destpath)) {
         pkgdir.mkdir(destpath) catch |err| {
@@ -68,19 +70,19 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8, envmap: *std.process.
     const workdir = try pkgdir.open(destpath);
     if (dest.?.onBeforeCommand) |onBeforeCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onBeforeCommand, "\x1b[0m" });
-        try pkgshell.start(allocator, workdir, onBeforeCommand, &envvars);
+        try pkgshell.start(allocator, workdir, onBeforeCommand, envvars);
     }
     if (dest.?.command) |cmd| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", cmd, "\x1b[0m" });
         hookCancel();
     }
     pkgexpsessionmark.create(allocator, destpath) catch {};
-    try pkgshell.start(allocator, workdir, dest.?.command, &envvars);
+    try pkgshell.start(allocator, workdir, dest.?.command, envvars);
     pkgexpsessionmark.delete(allocator) catch {};
 
     if (dest.?.onAfterCommand) |onAfterCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onAfterCommand, "\x1b[0m" });
-        try pkgshell.start(allocator, workdir, onAfterCommand, &envvars);
+        try pkgshell.start(allocator, workdir, onAfterCommand, envvars);
     }
 }
 
@@ -95,7 +97,7 @@ fn hookCancel() void {
 }
 var canceling = false;
 
-fn handleCancel(_: c_int) callconv(.c) void {
+fn handleCancel(_: std.posix.SIG) callconv(.c) void {
     if (!canceling) {
         canceling = true;
         std.debug.print("catch ctrl+c\n", .{});
@@ -141,7 +143,7 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]con
         return;
     };
     defer envvars.deinit();
-    const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envvars);
+    const destpath = try pkgdir.marshalabs(allocator, dest.?.path, envvars);
     defer allocator.free(destpath);
     if (!pkgdir.exists(destpath)) {
         pkgdir.mkdir(destpath) catch |err| {
@@ -150,10 +152,10 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]con
         };
     }
     const workdir = try pkgdir.open(destpath);
-    try pkgshell.start(allocator, workdir, command, &envvars);
+    try pkgshell.start(allocator, workdir, command, envvars);
 }
 
-fn buildEnvVars(allocator: std.mem.Allocator, dest: ?pkgconfig.Path, envmap: *std.process.Environ.Map) !std.process.Environ.Map {
+fn buildEnvVars(allocator: std.mem.Allocator, dest: ?pkgconfig.Path, envmap: *std.process.Environ.Map) !*std.process.Environ.Map {
     if (dest.?.envs) |evs| {
         for (evs) |ev| {
             if (ev.ask) |askText| {
