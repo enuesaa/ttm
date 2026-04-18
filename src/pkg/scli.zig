@@ -28,8 +28,8 @@ pub const CLI = struct {
             .arena = std.heap.ArenaAllocator.init(allocator),
             .name = name,
             .description = description,
-            .flags = .{},
-            .positionals = .{},
+            .flags = .initBuffer(&.{}),
+            .positionals = .initBuffer(&.{}),
         };
     }
 
@@ -64,7 +64,7 @@ pub const CLI = struct {
         return flag;
     }
 
-    pub fn parse(self: *CLI, argv: [][:0]u8) ?ParseErr {
+    pub fn parse(self: *CLI, argv: []const [:0]const u8) ?ParseErr {
         const allocator = self.arena.allocator();
         var i: usize = 1;
 
@@ -110,23 +110,22 @@ pub const CLI = struct {
 
     pub fn generateHelpText(self: *CLI) ![]u8 {
         const allocator = self.arena.allocator();
-        var buf: std.ArrayList(u8) = .{};
-        const writer = buf.writer(allocator);
+        var buf: std.ArrayList(u8) = .initBuffer(&.{});
 
-        try writer.print("{s}\n", .{self.name});
-        try writer.print("{s}\n", .{self.description});
-        try writer.print("\n", .{});
-        try writer.print("Usage:\n", .{});
-        try writer.print("  {s}\n", .{self.usage});
+        try buf.print(allocator, "{s}\n", .{self.name});
+        try buf.print(allocator, "{s}\n", .{self.description});
+        try buf.print(allocator, "\n", .{});
+        try buf.print(allocator, "Usage:\n", .{});
+        try buf.print(allocator, "  {s}\n", .{self.usage});
 
         if (self.flags.items.len > 0) {
-            try writer.print("\n", .{});
-            try writer.print("Flags:\n", .{});
+            try buf.print(allocator, "\n", .{});
+            try buf.print(allocator, "Flags:\n", .{});
             for (self.flags.items) |flag| {
                 if (flag.alias != null) {
-                    try writer.print("  {s}, {s}\t{s}\n", .{ flag.alias.?, flag.name, flag.description });
+                    try buf.print(allocator, "  {s}, {s}\t{s}\n", .{ flag.alias.?, flag.name, flag.description });
                 } else {
-                    try writer.print("  {s}\t{s}\n", .{ flag.name, flag.description });
+                    try buf.print(allocator, "  {s}\t{s}\n", .{ flag.name, flag.description });
                 }
             }
         }
