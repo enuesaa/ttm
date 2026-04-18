@@ -24,7 +24,7 @@ pub fn start(allocator: std.mem.Allocator, workdir: std.Io.Dir, command: ?[]cons
     const argv = if (command == null) &[_][]const u8{"zsh"} else &[_][]const u8{ "sh", "-c", command.? };
     var child = try std.process.spawn(io.?, .{
         .argv = argv,
-        .environ_map = envmap,
+        .environ_map = envvars,
         .cwd = .{ .dir = workdir },
     });
     _ = try child.wait(io.?);
