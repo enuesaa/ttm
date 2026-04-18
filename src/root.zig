@@ -11,6 +11,7 @@ pub fn setEnvMap(envmap: *std.process.Environ.Map, io: std.Io) void {
     pkgdir.envmap = envmap;
     pkgdir.io = io;
     pkgregistry.io = io;
+    pkgconfig.io = io;
 }
 
 pub fn init(allocator: std.mem.Allocator) !void {

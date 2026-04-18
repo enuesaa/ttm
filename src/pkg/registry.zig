@@ -40,8 +40,8 @@ pub fn createHookScript(allocator: std.mem.Allocator) !void {
     const hookScriptPath = try getHookScriptPath(allocator);
     defer allocator.free(hookScriptPath);
     const file = try std.Io.Dir.cwd().createFile(io.?, hookScriptPath, .{});
-    defer file.close();
-    try file.writeAll(hooksh);
+    defer file.close(io.?);
+    try file.writeStreamingAll(io.?, hooksh);
 }
 
 pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
@@ -64,6 +64,6 @@ pub fn createInitialConfig(allocator: std.mem.Allocator) !void {
     const configPath = try getConfigPath(allocator);
     defer allocator.free(configPath);
     const file = try std.Io.Dir.cwd().createFile(io.?, configPath, .{});
-    defer file.close();
-    try file.writeAll(initialConfig);
+    defer file.close(io.?);
+    try file.writeStreamingAll(io.?, initialConfig);
 }
