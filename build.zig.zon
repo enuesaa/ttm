@@ -2,7 +2,7 @@
     .name = .ttm,
     .version = "0.0.12",
     .fingerprint = 0xd4e9b88929b7e884,
-    .minimum_zig_version = "0.15.2",
+    .minimum_zig_version = "0.16.0",
     .dependencies = .{
         .toml = .{
             .url = "git+https://github.com/sam701/zig-toml#a73c9423d88ed413204b39638fab7e9bccdb83fd",
