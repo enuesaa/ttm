@@ -7,6 +7,20 @@ const pkgdir = @import("pkg/dir.zig");
 const pkgprompt = @import("pkg/prompt.zig");
 const pkgexpsessionmark = @import("pkg/expsessionmark.zig");
 
+pub var envmapOriginal: ?*std.process.Environ.Map = null;
+
+pub fn setEnvMap(envmap: *std.process.Environ.Map, io: std.Io) void {
+    envmapOriginal = envmap;
+    pkgdir.envmap = envmap;
+    pkgdir.io = io;
+    pkgregistry.io = io;
+    pkgconfig.io = io;
+    pkgshell.io = io;
+    pkgshell.envmap = envmap;
+    pkgprompt.io = io;
+    pkgexpsessionmark.io = io;
+}
+
 pub fn init(allocator: std.mem.Allocator) !void {
     try pkgregistry.make(allocator);
     try pkgregistry.createHookScript(allocator);
@@ -19,6 +33,8 @@ pub fn init(allocator: std.mem.Allocator) !void {
 }
 
 pub fn edit(allocator: std.mem.Allocator) !void {
+    var envmap = try envmapOriginal.?.clone(allocator);
+    defer envmap.deinit();
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
     const editor = pkgconfig.getInstalledEditor(allocator, parsed.config) catch |err| {
@@ -27,15 +43,17 @@ pub fn edit(allocator: std.mem.Allocator) !void {
     };
     const configPath = try pkgregistry.getConfigPath(allocator);
     defer allocator.free(configPath);
-    const workdir = try pkgdir.openr(allocator, ".");
+    const homedir = try pkgdir.getHomeDir(allocator);
+    defer allocator.free(homedir);
+    const workdir = try pkgdir.open(homedir);
     const command = try std.fmt.allocPrint(allocator, "{s} {s}", .{ editor, configPath });
     defer allocator.free(command);
-    var envvars = try pkgshell.getCurrentEnvVars(allocator);
-    defer envvars.deinit();
-    try pkgshell.start(allocator, workdir, command, &envvars);
+    try pkgshell.start(allocator, workdir, command, &envmap);
 }
 
 pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
+    var envmap = try envmapOriginal.?.clone(allocator);
+    defer envmap.deinit();
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
     const dest = parsed.config.getPath(cliTo);
@@ -45,12 +63,11 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     }
     std.debug.print("{s}*** {s} ***{s}\n", .{ "\x1b[33m", dest.?.path, "\x1b[0m" });
 
-    var envvars = buildEnvVars(allocator, dest) catch |err| {
+    buildEnvVars(allocator, dest, &envmap) catch |err| {
         std.debug.print("error: failed to build env vars because of {}\n", .{err});
         return;
     };
-    defer envvars.deinit();
-    const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envvars);
+    const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envmap);
     defer allocator.free(destpath);
     if (!pkgdir.exists(destpath)) {
         pkgdir.mkdir(destpath) catch |err| {
@@ -61,19 +78,19 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     const workdir = try pkgdir.open(destpath);
     if (dest.?.onBeforeCommand) |onBeforeCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onBeforeCommand, "\x1b[0m" });
-        try pkgshell.start(allocator, workdir, onBeforeCommand, &envvars);
+        try pkgshell.start(allocator, workdir, onBeforeCommand, &envmap);
     }
     if (dest.?.command) |cmd| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", cmd, "\x1b[0m" });
         hookCancel();
     }
     pkgexpsessionmark.create(allocator, destpath) catch {};
-    try pkgshell.start(allocator, workdir, dest.?.command, &envvars);
+    try pkgshell.start(allocator, workdir, dest.?.command, &envmap);
     pkgexpsessionmark.delete(allocator) catch {};
 
     if (dest.?.onAfterCommand) |onAfterCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onAfterCommand, "\x1b[0m" });
-        try pkgshell.start(allocator, workdir, onAfterCommand, &envvars);
+        try pkgshell.start(allocator, workdir, onAfterCommand, &envmap);
     }
 }
 
@@ -88,7 +105,7 @@ fn hookCancel() void {
 }
 var canceling = false;
 
-fn handleCancel(_: c_int) callconv(.c) void {
+fn handleCancel(_: std.posix.SIG) callconv(.c) void {
     if (!canceling) {
         canceling = true;
         std.debug.print("catch ctrl+c\n", .{});
@@ -108,16 +125,18 @@ pub fn ls(allocator: std.mem.Allocator) !void {
 
 // experimental
 pub fn last(allocator: std.mem.Allocator) !void {
+    var envmap = try envmapOriginal.?.clone(allocator);
+    defer envmap.deinit();
     const destpath = try pkgexpsessionmark.get(allocator);
     defer allocator.free(destpath);
     const workdir = try pkgdir.open(destpath);
-    var envvars = try pkgshell.getCurrentEnvVars(allocator);
-    defer envvars.deinit();
-    try pkgshell.start(allocator, workdir, null, &envvars);
+    try pkgshell.start(allocator, workdir, null, &envmap);
 }
 
 // experimental
 pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]const u8) !void {
+    var envmap = try envmapOriginal.?.clone(allocator);
+    defer envmap.deinit();
     const command = try std.mem.join(allocator, " ", commands);
     defer allocator.free(command);
     var parsed = try pkgconfig.get(allocator);
@@ -131,12 +150,11 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]con
     pkglog.infoln("*** {s} ***", .{dest.?.path});
     pkglog.infoln("* {s}", .{command});
 
-    var envvars = buildEnvVars(allocator, dest) catch |err| {
+    buildEnvVars(allocator, dest, &envmap) catch |err| {
         std.debug.print("error: failed to build env vars because of {}\n", .{err});
         return;
     };
-    defer envvars.deinit();
-    const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envvars);
+    const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envmap);
     defer allocator.free(destpath);
     if (!pkgdir.exists(destpath)) {
         pkgdir.mkdir(destpath) catch |err| {
@@ -145,26 +163,24 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]con
         };
     }
     const workdir = try pkgdir.open(destpath);
-    try pkgshell.start(allocator, workdir, command, &envvars);
+    try pkgshell.start(allocator, workdir, command, &envmap);
 }
 
-fn buildEnvVars(allocator: std.mem.Allocator, dest: ?pkgconfig.Path) !std.process.EnvMap {
-    var envvars = try pkgshell.getCurrentEnvVars(allocator);
+fn buildEnvVars(allocator: std.mem.Allocator, dest: ?pkgconfig.Path, envmap: *std.process.Environ.Map) !void {
     if (dest.?.envs) |evs| {
         for (evs) |ev| {
             if (ev.ask) |askText| {
                 const askRet = try pkgprompt.ask(allocator, askText, ev.value);
                 defer allocator.free(askRet);
                 if (ev.required != null and ev.required.? == true and std.mem.eql(u8, askRet, "")) {
-                    envvars.deinit();
+                    envmap.deinit();
                     std.debug.print("error: {s} is required\n", .{ev.key});
                     return error.failedToBuildEnvVars;
                 }
-                try envvars.put(ev.key, askRet);
+                try envmap.put(ev.key, askRet);
             } else {
-                try envvars.put(ev.key, ev.value);
+                try envmap.put(ev.key, ev.value);
             }
         }
     }
-    return envvars;
 }
