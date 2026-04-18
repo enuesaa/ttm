@@ -10,13 +10,10 @@ pub const std_options: std.Options = .{
     },
 };
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
-
-    const args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, args);
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
+    const args = try init.minimal.args.toSlice(allocator);
+    defer allocator.free(args);
 
     var scli = pkgscli.CLI.init(allocator, "ttm", "A CLI tool to move another directory temporarily.");
     defer scli.deinit();
