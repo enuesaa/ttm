@@ -2,8 +2,7 @@ const std = @import("std");
 const pkgregistry = @import("registry.zig");
 const pkgshell = @import("shell.zig");
 const toml = @import("toml");
-
-pub var io: ?std.Io = null;
+const pkgenv = @import("env.zig");
 
 pub const Env = struct {
     key: []const u8,
@@ -45,9 +44,10 @@ pub const Parsed = struct {
 };
 
 pub fn get(allocator: std.mem.Allocator) !Parsed {
+    const io = try pkgenv.getIo();
     const path = try pkgregistry.getConfigPath(allocator);
     defer allocator.free(path);
-    const raw = try std.Io.Dir.cwd().readFileAlloc(io.?, path, allocator, .unlimited);
+    const raw = try std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .unlimited);
     defer allocator.free(raw);
 
     var arena = std.heap.ArenaAllocator.init(allocator);

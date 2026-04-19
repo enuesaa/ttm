@@ -1,9 +1,8 @@
 const std = @import("std");
 const pkgdir = @import("dir.zig");
+const pkgenv = @import("env.zig");
 const hooksh = @embedFile("registryhook.sh");
 const initialConfig = @embedFile("registryconfig.toml");
-
-pub var io: ?std.Io = null;
 
 pub fn getRegistryPath(allocator: std.mem.Allocator) ![]u8 {
     const homedir = try pkgdir.getHomeDir(allocator);
@@ -37,6 +36,7 @@ pub fn getHookScriptPath(allocator: std.mem.Allocator) ![]u8 {
 }
 
 pub fn createHookScript(allocator: std.mem.Allocator) !void {
+    const io = try pkgenv.getIo();
     const hookScriptPath = try getHookScriptPath(allocator);
     defer allocator.free(hookScriptPath);
     const file = try std.Io.Dir.cwd().createFile(io.?, hookScriptPath, .{});
@@ -57,6 +57,7 @@ pub fn isConfigExist(allocator: std.mem.Allocator) !bool {
 }
 
 pub fn createInitialConfig(allocator: std.mem.Allocator) !void {
+    const io = try pkgenv.getIo();
     const isExist = try isConfigExist(allocator);
     if (isExist) {
         return;

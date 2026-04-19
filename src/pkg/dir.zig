@@ -1,13 +1,9 @@
 const std = @import("std");
-
-pub var envmap: ?*std.process.Environ.Map = null;
-pub var io: ?std.Io = null;
+const pkgenv = @import("env.zig");
 
 pub fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
-    if (envmap == null) {
-        return error.RuntimeError;
-    }
-    if (envmap.?.get("HOME")) |home| {
+    const envMap = try pkgenv.getEnvMap();
+    if (envMap.?.get("HOME")) |home| {
         return try allocator.dupe(u8, home);
     }
     return error.RuntimeError;
@@ -33,12 +29,13 @@ pub fn marshal(allocator: std.mem.Allocator, path: []const u8, envvars: *std.pro
 }
 
 pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
+    const io = try pkgenv.getIo();
     if (std.mem.startsWith(u8, path, "~")) {
         const homeDir = try getHomeDir(allocator);
         defer allocator.free(homeDir);
         return try std.fs.path.join(allocator, &.{ homeDir, path[1..] });
     }
-    return try std.Io.Dir.cwd().realPathFileAlloc(io.?, path, allocator);
+    return try std.Io.Dir.cwd().realPathFileAlloc(io, path, allocator);
 }
 
 pub fn marshalabs(allocator: std.mem.Allocator, path: []const u8, envvars: *std.process.Environ.Map) ![]const u8 {
@@ -48,16 +45,19 @@ pub fn marshalabs(allocator: std.mem.Allocator, path: []const u8, envvars: *std.
 }
 
 pub fn open(path: []const u8) !std.Io.Dir {
-    return try std.Io.Dir.openDirAbsolute(io.?, path, .{});
+    const io = try pkgenv.getIo();
+    return try std.Io.Dir.openDirAbsolute(io, path, .{});
 }
 
 pub fn exists(path: []const u8) bool {
-    std.Io.Dir.accessAbsolute(io.?, path, .{}) catch {
+    const io = try pkgenv.getIo();
+    std.Io.Dir.accessAbsolute(io, path, .{}) catch {
         return false;
     };
     return true;
 }
 
 pub fn mkdir(path: []const u8) !void {
-    try std.Io.Dir.createDirAbsolute(io.?, path, .default_dir);
+    const io = try pkgenv.getIo();
+    try std.Io.Dir.createDirAbsolute(io, path, .default_dir);
 }

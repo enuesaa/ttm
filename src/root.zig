@@ -11,14 +11,6 @@ const pkgexpsessionmark = @import("pkg/expsessionmark.zig");
 pub fn initialize(envmap: *std.process.Environ.Map, io: std.Io) void {
     pkgenv.envMap = envmap;
     pkgenv.io = io;
-    pkgdir.envmap = envmap;
-    pkgdir.io = io;
-    pkgregistry.io = io;
-    pkgconfig.io = io;
-    pkgshell.io = io;
-    pkgshell.envmap = envmap;
-    pkgprompt.io = io;
-    pkgexpsessionmark.io = io;
 }
 
 pub fn init(allocator: std.mem.Allocator) !void {
