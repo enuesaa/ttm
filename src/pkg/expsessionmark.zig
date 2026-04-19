@@ -20,8 +20,8 @@ pub fn create(allocator: std.mem.Allocator, workdir: []const u8) !void {
     const path = try getPath(allocator);
     defer allocator.free(path);
     const file = try std.Io.Dir.cwd().createFile(io, path, .{});
-    defer file.close(io.?);
-    try file.writeStreamingAll(io.?, workdir);
+    defer file.close(io);
+    try file.writeStreamingAll(io, workdir);
 }
 
 pub fn delete(allocator: std.mem.Allocator) !void {

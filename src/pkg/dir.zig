@@ -3,7 +3,7 @@ const pkgenv = @import("env.zig");
 
 pub fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
     const envMap = try pkgenv.getEnvMap();
-    if (envMap.?.get("HOME")) |home| {
+    if (envMap.get("HOME")) |home| {
         return try allocator.dupe(u8, home);
     }
     return error.RuntimeError;
@@ -49,7 +49,7 @@ pub fn open(path: []const u8) !std.Io.Dir {
     return try std.Io.Dir.openDirAbsolute(io, path, .{});
 }
 
-pub fn exists(path: []const u8) bool {
+pub fn exists(path: []const u8) !bool {
     const io = try pkgenv.getIo();
     std.Io.Dir.accessAbsolute(io, path, .{}) catch {
         return false;

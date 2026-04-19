@@ -7,7 +7,7 @@ pub fn getEnvMap() !*std.process.Environ.Map {
     if (envMap == null) {
         return error.RuntimeError;
     }
-    return envMap;
+    return envMap.?;
 }
 
 pub fn cloneEnvMap(allocator: std.mem.Allocator) !std.process.Environ.Map {
@@ -21,5 +21,5 @@ pub fn getIo() !std.Io {
     if (io == null) {
         return error.RuntimeError;
     }
-    return io;
+    return io.?;
 }

@@ -24,7 +24,7 @@ pub fn start(allocator: std.mem.Allocator, workdir: std.Io.Dir, command: ?[]cons
         .environ_map = envvars,
         .cwd = .{ .dir = workdir },
     });
-    _ = try child.wait(io.?);
+    _ = try child.wait(io);
 }
 
 pub fn isCommandExists(allocator: std.mem.Allocator, cmd: []const u8) !bool {

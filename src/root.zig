@@ -61,7 +61,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     };
     const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envmap);
     defer allocator.free(destpath);
-    if (!pkgdir.exists(destpath)) {
+    if (!try pkgdir.exists(destpath)) {
         pkgdir.mkdir(destpath) catch |err| {
             std.debug.print("error: failed to create dir {s} because of {}\n", .{ destpath, err });
             return;
@@ -148,7 +148,7 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]con
     };
     const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envmap);
     defer allocator.free(destpath);
-    if (!pkgdir.exists(destpath)) {
+    if (!try pkgdir.exists(destpath)) {
         pkgdir.mkdir(destpath) catch |err| {
             std.debug.print("error: failed to create dir {s} because of {}\n", .{ destpath, err });
             return;

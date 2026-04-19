@@ -13,7 +13,7 @@ pub fn getRegistryPath(allocator: std.mem.Allocator) ![]u8 {
 pub fn isRegistryExist(allocator: std.mem.Allocator) !bool {
     const registry = try getRegistryPath(allocator);
     defer allocator.free(registry);
-    return pkgdir.exists(registry);
+    return try pkgdir.exists(registry);
 }
 
 fn makeRegistry(allocator: std.mem.Allocator) !void {
@@ -39,9 +39,9 @@ pub fn createHookScript(allocator: std.mem.Allocator) !void {
     const io = try pkgenv.getIo();
     const hookScriptPath = try getHookScriptPath(allocator);
     defer allocator.free(hookScriptPath);
-    const file = try std.Io.Dir.cwd().createFile(io.?, hookScriptPath, .{});
-    defer file.close(io.?);
-    try file.writeStreamingAll(io.?, hooksh);
+    const file = try std.Io.Dir.cwd().createFile(io, hookScriptPath, .{});
+    defer file.close(io);
+    try file.writeStreamingAll(io, hooksh);
 }
 
 pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
@@ -53,7 +53,7 @@ pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
 pub fn isConfigExist(allocator: std.mem.Allocator) !bool {
     const configPath = try getConfigPath(allocator);
     defer allocator.free(configPath);
-    return pkgdir.exists(configPath);
+    return try pkgdir.exists(configPath);
 }
 
 pub fn createInitialConfig(allocator: std.mem.Allocator) !void {
@@ -64,7 +64,7 @@ pub fn createInitialConfig(allocator: std.mem.Allocator) !void {
     }
     const configPath = try getConfigPath(allocator);
     defer allocator.free(configPath);
-    const file = try std.Io.Dir.cwd().createFile(io.?, configPath, .{});
-    defer file.close(io.?);
-    try file.writeStreamingAll(io.?, initialConfig);
+    const file = try std.Io.Dir.cwd().createFile(io, configPath, .{});
+    defer file.close(io);
+    try file.writeStreamingAll(io, initialConfig);
 }

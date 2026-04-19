@@ -11,7 +11,7 @@ pub fn ask(allocator: std.mem.Allocator, text: []const u8, defaultValue: []const
 
     var buf: [100]u8 = undefined;
     const stdin = std.Io.File.stdin();
-    var reader = stdin.reader(io.?, &buf);
+    var reader = stdin.reader(io, &buf);
 
     const line = reader.interface.takeDelimiterExclusive('\n') catch |err| switch (err) {
         error.EndOfStream => return try allocator.dupe(u8, defaultValue),
