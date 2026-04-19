@@ -76,7 +76,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     }
     if (dest.?.command) |cmd| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", cmd, "\x1b[0m" });
-        hookCancel();
+        pkgshell.hookCancel();
     }
     pkgexpsessionmark.create(allocator, destpath) catch {};
     try pkgshell.start(allocator, workdir, dest.?.command, &envmap);
@@ -86,26 +86,6 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onAfterCommand, "\x1b[0m" });
         try pkgshell.start(allocator, workdir, onAfterCommand, &envmap);
     }
-}
-
-// NOTE: 開発時注意. zig build run -- が ctrl+c をキャッチして終了してしまう
-fn hookCancel() void {
-    const act = std.posix.Sigaction{
-        .handler = .{ .handler = handleCancel },
-        .mask = std.posix.sigemptyset(),
-        .flags = 0,
-    };
-    std.posix.sigaction(std.posix.SIG.INT, &act, null);
-}
-var canceling = false;
-
-fn handleCancel(_: std.posix.SIG) callconv(.c) void {
-    if (!canceling) {
-        canceling = true;
-        std.debug.print("catch ctrl+c\n", .{});
-        return;
-    }
-    std.debug.print("force cancel\n", .{});
 }
 
 pub fn ls(allocator: std.mem.Allocator) !void {

@@ -1,8 +1,7 @@
 const std = @import("std");
 const pkgregistry = @import("registry.zig");
-const pkgshell = @import("shell.zig");
-const toml = @import("toml");
 const pkgenv = @import("env.zig");
+const toml = @import("toml");
 
 pub const Env = struct {
     key: []const u8,
@@ -113,11 +112,11 @@ pub fn getInstalledEditor(allocator: std.mem.Allocator, config: Config) ![]const
     if (config.editor) |editor| {
         return editor;
     }
-    const isCodeExists = try pkgshell.isCommandExists(allocator, "code");
+    const isCodeExists = try pkgenv.isCommandExists(allocator, "code");
     if (isCodeExists) {
         return "code";
     }
-    const isVimExists = try pkgshell.isCommandExists(allocator, "vim");
+    const isVimExists = try pkgenv.isCommandExists(allocator, "vim");
     if (isVimExists) {
         return "vim";
     }

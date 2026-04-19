@@ -1,5 +1,4 @@
 const std = @import("std");
-const pkgconfig = @import("config.zig");
 const pkgenv = @import("env.zig");
 
 fn buildTTMNestedEnvVar(allocator: std.mem.Allocator) ![]const u8 {
@@ -27,14 +26,22 @@ pub fn start(allocator: std.mem.Allocator, workdir: std.Io.Dir, command: ?[]cons
     _ = try child.wait(io);
 }
 
-pub fn isCommandExists(allocator: std.mem.Allocator, cmd: []const u8) !bool {
-    const io = try pkgenv.getIo();
-    const result = try std.process.run(allocator, io, .{
-        .argv = &[_][]const u8{ "which", cmd },
-    });
-    defer {
-        allocator.free(result.stdout);
-        allocator.free(result.stderr);
+// NOTE: 開発時注意. zig build run -- が ctrl+c をキャッチして終了してしまう
+pub fn hookCancel() void {
+    const act = std.posix.Sigaction{
+        .handler = .{ .handler = handleCancel },
+        .mask = std.posix.sigemptyset(),
+        .flags = 0,
+    };
+    std.posix.sigaction(std.posix.SIG.INT, &act, null);
+}
+var canceling = false;
+
+fn handleCancel(_: std.posix.SIG) callconv(.c) void {
+    if (!canceling) {
+        canceling = true;
+        std.debug.print("catch ctrl+c\n", .{});
+        return;
     }
-    return result.term.exited == 0;
+    std.debug.print("force cancel\n", .{});
 }

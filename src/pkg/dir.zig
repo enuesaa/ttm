@@ -1,14 +1,6 @@
 const std = @import("std");
 const pkgenv = @import("env.zig");
 
-pub fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
-    const envMap = try pkgenv.getEnvMap();
-    if (envMap.get("HOME")) |home| {
-        return try allocator.dupe(u8, home);
-    }
-    return error.RuntimeError;
-}
-
 pub fn marshal(allocator: std.mem.Allocator, path: []const u8, envvars: *std.process.Environ.Map) ![]u8 {
     var ret = try allocator.dupe(u8, path);
     var it = envvars.iterator();
@@ -31,7 +23,7 @@ pub fn marshal(allocator: std.mem.Allocator, path: []const u8, envvars: *std.pro
 pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
     const io = try pkgenv.getIo();
     if (std.mem.startsWith(u8, path, "~")) {
-        const homeDir = try getHomeDir(allocator);
+        const homeDir = try pkgenv.getHomeDir(allocator);
         defer allocator.free(homeDir);
         return try std.fs.path.join(allocator, &.{ homeDir, path[1..] });
     }

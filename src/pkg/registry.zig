@@ -5,7 +5,7 @@ const hooksh = @embedFile("registryhook.sh");
 const initialConfig = @embedFile("registryconfig.toml");
 
 pub fn getRegistryPath(allocator: std.mem.Allocator) ![]u8 {
-    const homedir = try pkgdir.getHomeDir(allocator);
+    const homedir = try pkgenv.getHomeDir(allocator);
     defer allocator.free(homedir);
     return try std.fs.path.join(allocator, &.{ homedir, ".ttm" });
 }

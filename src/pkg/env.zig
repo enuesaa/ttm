@@ -23,3 +23,27 @@ pub fn getIo() !std.Io {
     }
     return io.?;
 }
+
+pub fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
+    if (envMap == null) {
+        return error.RuntimeError;
+    }
+    if (envMap.get("HOME")) |home| {
+        return try allocator.dupe(u8, home);
+    }
+    return error.RuntimeError;
+}
+
+pub fn isCommandExists(allocator: std.mem.Allocator, cmd: []const u8) !bool {
+    if (io == null) {
+        return error.RuntimeError;
+    }
+    const result = try std.process.run(allocator, io.?, .{
+        .argv = &[_][]const u8{ "which", cmd },
+    });
+    defer {
+        allocator.free(result.stdout);
+        allocator.free(result.stderr);
+    }
+    return result.term.exited == 0;
+}
