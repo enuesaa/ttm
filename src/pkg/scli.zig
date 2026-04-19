@@ -125,7 +125,7 @@ pub const CLI = struct {
                 if (flag.alias != null) {
                     try buf.print(allocator, "  {s}, {s}\t{s}\n", .{ flag.alias.?, flag.name, flag.description });
                 } else {
-                    try buf.print(allocator, "  {s}\t{s}\n", .{ flag.name, flag.description });
+                    try buf.print(allocator, "  {s}    \t{s}\n", .{ flag.name, flag.description });
                 }
             }
         }

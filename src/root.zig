@@ -59,7 +59,9 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
         std.debug.print("error: failed to build env vars because of {}\n", .{err});
         return;
     };
-    const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envmap);
+    const bpath = try pkgdir.marshal(allocator, dest.?.path, &envmap);
+    defer allocator.free(bpath);
+    const destpath = try pkgdir.abs(allocator, bpath);
     defer allocator.free(destpath);
     if (!try pkgdir.exists(destpath)) {
         pkgdir.mkdir(destpath) catch |err| {
@@ -146,7 +148,9 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]con
         std.debug.print("error: failed to build env vars because of {}\n", .{err});
         return;
     };
-    const destpath = try pkgdir.marshalabs(allocator, dest.?.path, &envmap);
+    const bpath = try pkgdir.marshal(allocator, dest.?.path, &envmap);
+    defer allocator.free(bpath);
+    const destpath = try pkgdir.abs(allocator, bpath);
     defer allocator.free(destpath);
     if (!try pkgdir.exists(destpath)) {
         pkgdir.mkdir(destpath) catch |err| {

@@ -38,12 +38,6 @@ pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
     return try std.Io.Dir.cwd().realPathFileAlloc(io, path, allocator);
 }
 
-pub fn marshalabs(allocator: std.mem.Allocator, path: []const u8, envvars: *std.process.Environ.Map) ![]const u8 {
-    const bpath = try marshal(allocator, path, envvars);
-    defer allocator.free(bpath);
-    return try abs(allocator, bpath);
-}
-
 pub fn open(path: []const u8) !std.Io.Dir {
     const io = try pkgenv.getIo();
     return try std.Io.Dir.openDirAbsolute(io, path, .{});
