@@ -4,13 +4,13 @@ const pkgregistry = @import("pkg/registry.zig");
 const pkgconfig = @import("pkg/config.zig");
 const pkgshell = @import("pkg/shell.zig");
 const pkgdir = @import("pkg/dir.zig");
+const pkgenv = @import("pkg/env.zig");
 const pkgprompt = @import("pkg/prompt.zig");
 const pkgexpsessionmark = @import("pkg/expsessionmark.zig");
 
-pub var envmapOriginal: ?*std.process.Environ.Map = null;
-
-pub fn setEnvMap(envmap: *std.process.Environ.Map, io: std.Io) void {
-    envmapOriginal = envmap;
+pub fn initialize(envmap: *std.process.Environ.Map, io: std.Io) void {
+    pkgenv.envMap = envmap;
+    pkgenv.io = io;
     pkgdir.envmap = envmap;
     pkgdir.io = io;
     pkgregistry.io = io;
@@ -33,7 +33,7 @@ pub fn init(allocator: std.mem.Allocator) !void {
 }
 
 pub fn edit(allocator: std.mem.Allocator) !void {
-    var envmap = try envmapOriginal.?.clone(allocator);
+    var envmap = try pkgenv.cloneEnvMap(allocator);
     defer envmap.deinit();
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
@@ -52,7 +52,7 @@ pub fn edit(allocator: std.mem.Allocator) !void {
 }
 
 pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
-    var envmap = try envmapOriginal.?.clone(allocator);
+    var envmap = try pkgenv.cloneEnvMap(allocator);
     defer envmap.deinit();
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
@@ -125,7 +125,7 @@ pub fn ls(allocator: std.mem.Allocator) !void {
 
 // experimental
 pub fn last(allocator: std.mem.Allocator) !void {
-    var envmap = try envmapOriginal.?.clone(allocator);
+    var envmap = try pkgenv.cloneEnvMap(allocator);
     defer envmap.deinit();
     const destpath = try pkgexpsessionmark.get(allocator);
     defer allocator.free(destpath);
@@ -135,7 +135,7 @@ pub fn last(allocator: std.mem.Allocator) !void {
 
 // experimental
 pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]const u8) !void {
-    var envmap = try envmapOriginal.?.clone(allocator);
+    var envmap = try pkgenv.cloneEnvMap(allocator);
     defer envmap.deinit();
     const command = try std.mem.join(allocator, " ", commands);
     defer allocator.free(command);
