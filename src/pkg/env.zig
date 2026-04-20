@@ -28,7 +28,7 @@ pub fn getHomeDir(allocator: std.mem.Allocator) ![]const u8 {
     if (envMap == null) {
         return error.RuntimeError;
     }
-    if (envMap.get("HOME")) |home| {
+    if (envMap.?.get("HOME")) |home| {
         return try allocator.dupe(u8, home);
     }
     return error.RuntimeError;
