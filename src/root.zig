@@ -61,12 +61,6 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     };
     const destpath = try pkgdir.abs(allocator, dest.?.path);
     defer allocator.free(destpath);
-    if (!try pkgdir.exists(destpath)) {
-        pkgdir.mkdir(destpath) catch |err| {
-            std.debug.print("error: failed to create dir {s} because of {}\n", .{ destpath, err });
-            return;
-        };
-    }
     const workdir = try pkgdir.open(destpath);
     if (dest.?.onBeforeCommand) |onBeforeCommand| {
         std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onBeforeCommand, "\x1b[0m" });
@@ -128,12 +122,6 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]con
     };
     const destpath = try pkgdir.abs(allocator, dest.?.path);
     defer allocator.free(destpath);
-    if (!try pkgdir.exists(destpath)) {
-        pkgdir.mkdir(destpath) catch |err| {
-            std.debug.print("error: failed to create dir {s} because of {}\n", .{ destpath, err });
-            return;
-        };
-    }
     const workdir = try pkgdir.open(destpath);
     try pkgshell.start(allocator, workdir, command, &envmap);
 }
