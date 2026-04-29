@@ -3,7 +3,7 @@ A CLI tool to move another directory temporarily
 
 ## Commands
 ```bash
-➜ zig build run -- --help
+➜ ttm -help
 ttm
 A CLI tool to move another directory temporarily.
 
@@ -11,11 +11,11 @@ Usage:
   ttm <to>
 
 Flags:
-  --help	show help
-  --version	show version
-  --init	print hook script for zsh
-  -l, --list	list directories to move
-  --set	add or update directory configuration
+  -help    	show help
+  -version  show version
+  -init    	print hook script for zsh
+  -edit    	edit ttm config file
+  -l, -list	list directories to move
 ```
 
 指定のディレクトリでセッションを開始する
