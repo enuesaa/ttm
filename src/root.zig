@@ -115,11 +115,6 @@ pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]con
     pkglog.infoln("*** InstantCommandExecution is an experimental feature ***", .{});
     pkglog.infoln("*** {s} ***", .{dest.?.path});
     pkglog.infoln("* {s}", .{command});
-
-    buildEnvVars(allocator, dest, &envmap) catch |err| {
-        std.debug.print("error: failed to build env vars because of {}\n", .{err});
-        return;
-    };
     const destpath = try pkgdir.abs(allocator, dest.?.path);
     defer allocator.free(destpath);
     const workdir = try pkgdir.open(destpath);
