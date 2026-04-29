@@ -1,25 +1,6 @@
 const std = @import("std");
 const pkgenv = @import("env.zig");
 
-pub fn marshal(allocator: std.mem.Allocator, path: []const u8, envvars: *std.process.Environ.Map) ![]u8 {
-    var ret = try allocator.dupe(u8, path);
-    var it = envvars.iterator();
-    while (it.next()) |entry| {
-        const key = entry.key_ptr.*;
-        const value = entry.value_ptr.*;
-
-        const pattern = try std.fmt.allocPrint(allocator, "${{{s}}}", .{key});
-        defer allocator.free(pattern);
-
-        if (std.mem.indexOf(u8, ret, pattern) != null) {
-            const replaced = try std.mem.replaceOwned(u8, allocator, ret, pattern, value);
-            allocator.free(ret);
-            ret = replaced;
-        }
-    }
-    return ret;
-}
-
 pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
     const io = try pkgenv.getIo();
     if (std.mem.startsWith(u8, path, "~")) {
