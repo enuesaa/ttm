@@ -99,28 +99,6 @@ pub fn last(allocator: std.mem.Allocator) !void {
     try pkgshell.start(allocator, workdir, null, &envmap);
 }
 
-// experimental
-pub fn cdexec(allocator: std.mem.Allocator, cliTo: []const u8, commands: [][]const u8) !void {
-    var envmap = try pkgenv.cloneEnvMap(allocator);
-    defer envmap.deinit();
-    const command = try std.mem.join(allocator, " ", commands);
-    defer allocator.free(command);
-    var parsed = try pkgconfig.get(allocator);
-    defer parsed.deinit();
-    const dest = parsed.config.getPath(cliTo);
-    if (dest == null) {
-        std.debug.print("dest not found: {s}\n", .{cliTo});
-        return;
-    }
-    pkglog.infoln("*** InstantCommandExecution is an experimental feature ***", .{});
-    pkglog.infoln("*** {s} ***", .{dest.?.path});
-    pkglog.infoln("* {s}", .{command});
-    const destpath = try pkgdir.abs(allocator, dest.?.path);
-    defer allocator.free(destpath);
-    const workdir = try pkgdir.open(destpath);
-    try pkgshell.start(allocator, workdir, command, &envmap);
-}
-
 fn buildEnvVars(allocator: std.mem.Allocator, dest: ?pkgconfig.Path, envmap: *std.process.Environ.Map) !void {
     if (dest.?.envs) |evs| {
         for (evs) |ev| {

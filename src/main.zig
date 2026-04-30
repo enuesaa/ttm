@@ -57,10 +57,6 @@ pub fn main(init: std.process.Init) !void {
         try ttm.cd(allocator, scli.positionals.items[0]);
         return;
     }
-    if (scli.positionals.items.len > 1) {
-        try ttm.cdexec(allocator, scli.positionals.items[0], scli.positionals.items[1..]);
-        return;
-    }
     ttm.last(allocator) catch {
         std.debug.print("error: failed to find last session.\n", .{});
         std.debug.print("\n", .{});
