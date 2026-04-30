@@ -17,6 +17,16 @@ pub const Path = struct {
     onBeforeCommand: ?[]const u8,
     onAfterCommand: ?[]const u8,
     envs: ?[]Env = null,
+    variants: ?[]Variant = null,
+};
+
+pub const Variant = struct {
+    name: []const u8,
+    path: ?[]const u8,
+    command: ?[]const u8,
+    onBeforeCommand: ?[]const u8,
+    onAfterCommand: ?[]const u8,
+    envs: ?[]Env = null,
 };
 
 pub const Config = struct {
