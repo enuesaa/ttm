@@ -41,6 +41,31 @@ pub const Config = struct {
         }
         return null;
     }
+
+    pub fn getPathVariant(self: *Config, name: []const u8, variantName: []const u8) ?Path {
+        const path = self.getPath(name);
+        if (path == null or path.?.variants == null) {
+            return null;
+        }
+        var variant: ?Variant = null;
+        for (path.?.variants.?) |v| {
+            if (std.mem.eql(u8, v.name, variantName)) {
+                variant = v;
+                break;
+            }
+        }
+        if (variant == null) {
+            return null;
+        }
+        return Path{
+            .name = path.?.name,
+            .path = variant.?.path orelse path.?.path,
+            .command = variant.?.command orelse path.?.command,
+            .onBeforeCommand = variant.?.onBeforeCommand orelse path.?.onBeforeCommand,
+            .onAfterCommand = variant.?.onAfterCommand orelse path.?.onAfterCommand,
+            .envs = variant.?.envs orelse path.?.envs,
+        };
+    }
 };
 
 pub const Parsed = struct {
