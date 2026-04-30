@@ -81,14 +81,14 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
 }
 
 pub fn cdvariant(allocator: std.mem.Allocator, cliTo: []const u8, variantName: []const u8) !void {
-    std.debug.print("{s} {s}\n", .{ cliTo, variantName });
+    pkglog.infoln("*** PathVariant is an experimental feature ***", .{});
     var envmap = try pkgenv.cloneEnvMap(allocator);
     defer envmap.deinit();
     var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
     const dest = parsed.config.getPathVariant(cliTo, variantName);
     if (dest == null) {
-        std.debug.print("dest not found: {s}\n", .{cliTo});
+        std.debug.print("dest not found: {s} {s}\n", .{ cliTo, variantName });
         return;
     }
     std.debug.print("{s}*** {s} ***{s}\n", .{ "\x1b[33m", dest.?.path, "\x1b[0m" });
