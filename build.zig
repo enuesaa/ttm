@@ -32,7 +32,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
     const options = b.addOptions();
-    options.addOption([]const u8, "version", "0.0.12");
+    options.addOption([]const u8, "version", "0.0.14");
     exe.root_module.addOptions("config", options);
     b.installArtifact(exe);
 
