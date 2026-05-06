@@ -8,7 +8,9 @@ pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
         defer allocator.free(homeDir);
         return try std.fs.path.join(allocator, &.{ homeDir, path[1..] });
     }
-    return try std.Io.Dir.cwd().realPathFileAlloc(io, path, allocator);
+    var buf: [std.fs.max_path_bytes]u8 = undefined;
+    const n = try std.Io.Dir.cwd().realPathFile(io, path, &buf);
+    return try allocator.dupe(u8, buf[0..n]);
 }
 
 pub fn open(path: []const u8) !std.Io.Dir {
