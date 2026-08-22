@@ -51,7 +51,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
         std.debug.print("dest not found: {s}\n", .{cliTo});
         return;
     }
-    std.debug.print("{s}*** {s} ***{s}\n", .{ "\x1b[33m", dest.?.path, "\x1b[0m" });
+    std.debug.print("{s}* ttm session started!{s}\n", .{ "\x1b[33m", "\x1b[0m" });
 
     buildEnvVars(allocator, dest, &envmap) catch |err| {
         std.debug.print("error: failed to build env vars because of {}\n", .{err});
