@@ -25,7 +25,7 @@ pub fn main(init: std.process.Init) !void {
     const editFlag = try scli.flagBool("-edit", "edit ttm config file");
     const lsFlag = try scli.flagBool("-list", "list directories to move");
     lsFlag.alias = "-l";
-    const lastFlag = try scli.flagBool("-last", "move to the last opened directory.");
+    const lastFlag = try scli.flagBool("-last", "move to the last opened directory");
 
     const err = scli.parse(args);
     if (err != null) {

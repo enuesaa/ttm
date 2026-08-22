@@ -13,17 +13,9 @@ Usage:
 Flags:
   -help    	show help
   -version  show version
-  -init    	print hook script for zsh
   -edit    	edit ttm config file
   -l, -list	list directories to move
-```
-
-指定のディレクトリでセッションを開始する
-
-```bash
-ttm    # start session. move to default dir. and exit.
-ttm .  # move to current dir
-ttm .. # move to parent dir
+  -last    	move to the last opened directory
 ```
 
 設定ファイル
@@ -31,7 +23,7 @@ ttm .. # move to parent dir
 ```toml
 [[paths]]
 name = "default"
-path = "~"
+path = "."
 
 [[paths]]
 name = ".."
@@ -39,10 +31,6 @@ path = ".."
 ```
 
 ## feature plans
-- remove feature: variant
-  - 過剰だった。フラットに置くので十分
-- ttm でカレントディレクトリへ。
-  - `ttm -last` でそこへ。
 - completion
 ```bash
 ➜ _foo_completion() {
