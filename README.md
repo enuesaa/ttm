@@ -39,6 +39,10 @@ path = ".."
 ```
 
 ## feature plans
+- remove feature: variant
+  - 過剰だった。フラットに置くので十分
+- ttm でカレントディレクトリへ。
+  - `ttm -last` でそこへ。
 - completion
 ```bash
 ➜ _foo_completion() {
@@ -49,7 +53,6 @@ path = ".."
     restart
     status
   )
-
   compadd -- $subcmds
 }
 ~/tmp
@@ -57,4 +60,3 @@ path = ".."
 ```
 
 - history
-- terminal multiplexer
