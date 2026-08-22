@@ -15,17 +15,10 @@ pub fn isRegistryExist(allocator: std.mem.Allocator) !bool {
     return try pkgdir.exists(registry);
 }
 
-fn makeRegistry(allocator: std.mem.Allocator) !void {
+pub fn makeRegistry(allocator: std.mem.Allocator) !void {
     const registry = try getRegistryPath(allocator);
     defer allocator.free(registry);
     try pkgdir.mkdir(registry);
-}
-
-pub fn make(allocator: std.mem.Allocator) !void {
-    if (try isRegistryExist(allocator)) {
-        return;
-    }
-    try makeRegistry(allocator);
 }
 
 pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {
@@ -42,10 +35,6 @@ pub fn isConfigExist(allocator: std.mem.Allocator) !bool {
 
 pub fn createInitialConfig(allocator: std.mem.Allocator) !void {
     const io = try pkgenv.getIo();
-    const isExist = try isConfigExist(allocator);
-    if (isExist) {
-        return;
-    }
     const configPath = try getConfigPath(allocator);
     defer allocator.free(configPath);
     const file = try std.Io.Dir.cwd().createFile(io, configPath, .{});

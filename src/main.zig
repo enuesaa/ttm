@@ -22,7 +22,6 @@ pub fn main(init: std.process.Init) !void {
 
     const helpFlag = try scli.flagBool("-help", "show help");
     const versionFlag = try scli.flagBool("-version", "show version");
-    const initFlag = try scli.flagBool("-init", "print hook script for zsh");
     const editFlag = try scli.flagBool("-edit", "edit ttm config file");
     const lsFlag = try scli.flagBool("-list", "list directories to move");
     lsFlag.alias = "-l";
@@ -42,10 +41,8 @@ pub fn main(init: std.process.Init) !void {
         std.debug.print("v{s}\n", .{config.version});
         return;
     }
-    if (initFlag.is) {
-        try ttm.init(allocator);
-        return;
-    }
+    try ttm.init(allocator);
+
     if (editFlag.is) {
         try ttm.edit(allocator);
         return;

@@ -14,8 +14,12 @@ pub fn initialize(envmap: *std.process.Environ.Map, io: std.Io) void {
 }
 
 pub fn init(allocator: std.mem.Allocator) !void {
-    try pkgregistry.make(allocator);
-    try pkgregistry.createInitialConfig(allocator);
+    if (!try pkgregistry.isRegistryExist(allocator)) {
+        try pkgregistry.makeRegistry(allocator);
+    }
+    if (!try pkgregistry.isConfigExist(allocator)) {
+        try pkgregistry.createInitialConfig(allocator);
+    }
 }
 
 pub fn edit(allocator: std.mem.Allocator) !void {
