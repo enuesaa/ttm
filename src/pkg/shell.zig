@@ -1,3 +1,4 @@
+// src/pkg/shell.zig
 const std = @import("std");
 const pkgenv = @import("env.zig");
 
@@ -17,6 +18,9 @@ pub fn start(allocator: std.mem.Allocator, workdir: std.Io.Dir, command: ?[]cons
     try envvars.put("TTM", "true");
     try envvars.put("TTM_NESTED", ttmNested);
 
+    // change background color
+    std.debug.print("\x1b]11;#2b2b1a\x07", .{});
+
     const argv = if (command == null) &[_][]const u8{"zsh"} else &[_][]const u8{ "sh", "-c", command.? };
     var child = try std.process.spawn(io, .{
         .argv = argv,
@@ -24,6 +28,9 @@ pub fn start(allocator: std.mem.Allocator, workdir: std.Io.Dir, command: ?[]cons
         .cwd = .{ .dir = workdir },
     });
     _ = try child.wait(io);
+
+    // revert background color
+    std.debug.print("\x1b]111\x07", .{});
 }
 
 // NOTE: 開発時注意. zig build run -- が ctrl+c をキャッチして終了してしまう
