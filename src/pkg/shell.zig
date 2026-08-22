@@ -1,22 +1,8 @@
-// src/pkg/shell.zig
 const std = @import("std");
 const pkgenv = @import("env.zig");
 
-fn buildTTMNestedEnvVar(allocator: std.mem.Allocator) ![]const u8 {
-    const envMap = try pkgenv.getEnvMap();
-    const original = envMap.get("TTM_NESTED");
-    if (original == null) {
-        return allocator.dupe(u8, "*");
-    }
-    return try std.mem.concat(allocator, u8, &.{ original.?, "*" });
-}
-
-pub fn start(allocator: std.mem.Allocator, workdir: std.Io.Dir, command: ?[]const u8, envvars: *std.process.Environ.Map) !void {
+pub fn start(_: std.mem.Allocator, workdir: std.Io.Dir, command: ?[]const u8, envvars: *std.process.Environ.Map) !void {
     const io = try pkgenv.getIo();
-    const ttmNested = try buildTTMNestedEnvVar(allocator);
-    defer allocator.free(ttmNested);
-    try envvars.put("TTM", "true");
-    try envvars.put("TTM_NESTED", ttmNested);
 
     // change background color
     std.debug.print("\x1b]11;#2b2b1a\x07", .{});

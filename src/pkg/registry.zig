@@ -1,7 +1,6 @@
 const std = @import("std");
 const pkgdir = @import("dir.zig");
 const pkgenv = @import("env.zig");
-const hooksh = @embedFile("registryhook.sh");
 const initialConfig = @embedFile("registryconfig.toml");
 
 pub fn getRegistryPath(allocator: std.mem.Allocator) ![]u8 {
@@ -27,21 +26,6 @@ pub fn make(allocator: std.mem.Allocator) !void {
         return;
     }
     try makeRegistry(allocator);
-}
-
-pub fn getHookScriptPath(allocator: std.mem.Allocator) ![]u8 {
-    const registryPath = try getRegistryPath(allocator);
-    defer allocator.free(registryPath);
-    return try std.fs.path.join(allocator, &.{ registryPath, "hook.sh" });
-}
-
-pub fn createHookScript(allocator: std.mem.Allocator) !void {
-    const io = try pkgenv.getIo();
-    const hookScriptPath = try getHookScriptPath(allocator);
-    defer allocator.free(hookScriptPath);
-    const file = try std.Io.Dir.cwd().createFile(io, hookScriptPath, .{});
-    defer file.close(io);
-    try file.writeStreamingAll(io, hooksh);
 }
 
 pub fn getConfigPath(allocator: std.mem.Allocator) ![]u8 {

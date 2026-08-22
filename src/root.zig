@@ -15,13 +15,7 @@ pub fn initialize(envmap: *std.process.Environ.Map, io: std.Io) void {
 
 pub fn init(allocator: std.mem.Allocator) !void {
     try pkgregistry.make(allocator);
-    try pkgregistry.createHookScript(allocator);
     try pkgregistry.createInitialConfig(allocator);
-
-    const hookScriptPath = try pkgregistry.getHookScriptPath(allocator);
-    defer allocator.free(hookScriptPath);
-    std.debug.print("Add the following hook script to .zshrc:\n\n", .{});
-    std.debug.print("eval \"$({s})\"\n", .{hookScriptPath});
 }
 
 pub fn edit(allocator: std.mem.Allocator) !void {
