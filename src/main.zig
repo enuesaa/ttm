@@ -63,5 +63,5 @@ pub fn main(init: std.process.Init) !void {
         try ttm.cd(allocator, scli.positionals.items[0]);
         return;
     }
-    try ttm.cd(allocator, ".");
+    try ttm.cd(allocator, "default");
 }
