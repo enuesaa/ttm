@@ -56,7 +56,6 @@ pub fn main(init: std.process.Init) !void {
             std.debug.print("error: failed to find last session.\n", .{});
             std.debug.print("\n", .{});
             try ttm.ls(allocator);
-            return;
         };
         return;
     }
