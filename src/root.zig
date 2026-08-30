@@ -51,7 +51,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
         std.debug.print("dest not found: {s}\n", .{cliTo});
         return;
     }
-    std.debug.print("{s}* ttm session started!{s}\n", .{ "\x1b[33m", "\x1b[0m" });
+    pkglog.infoln("* ttm session started!", .{});
 
     buildEnvVars(allocator, dest, &envmap) catch |err| {
         std.debug.print("error: failed to build env vars because of {}\n", .{err});
@@ -61,11 +61,11 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     defer allocator.free(destpath);
     const workdir = try pkgdir.open(destpath);
     if (dest.?.onBeforeCommand) |onBeforeCommand| {
-        std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onBeforeCommand, "\x1b[0m" });
+        pkglog.infoln("* {s}", .{onBeforeCommand});
         try pkgshell.start(allocator, workdir, onBeforeCommand, &envmap);
     }
     if (dest.?.command) |cmd| {
-        std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", cmd, "\x1b[0m" });
+        pkglog.infoln("* {s}", .{cmd});
         pkgshell.hookCancel();
     }
     pkgexpsessionmark.create(allocator, destpath) catch {};
@@ -73,7 +73,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     pkgexpsessionmark.delete(allocator) catch {};
 
     if (dest.?.onAfterCommand) |onAfterCommand| {
-        std.debug.print("{s}* {s}{s}\n", .{ "\x1b[33m", onAfterCommand, "\x1b[0m" });
+        pkglog.infoln("* {s}", .{onAfterCommand});
         try pkgshell.start(allocator, workdir, onAfterCommand, &envmap);
     }
 }

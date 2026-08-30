@@ -53,8 +53,7 @@ pub fn main(init: std.process.Init) !void {
     }
     if (lastFlag.is) {
         ttm.last(allocator) catch {
-            std.debug.print("error: failed to find last session.\n", .{});
-            std.debug.print("\n", .{});
+            std.debug.print("error: failed to find last session.\n\n", .{});
             try ttm.ls(allocator);
         };
         return;
