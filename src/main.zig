@@ -58,6 +58,7 @@ pub fn main(init: std.process.Init) !void {
             try ttm.ls(allocator);
             return;
         };
+        return;
     }
     if (scli.positionals.items.len == 1) {
         try ttm.cd(allocator, scli.positionals.items[0]);
