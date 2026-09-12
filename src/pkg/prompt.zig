@@ -9,6 +9,7 @@ pub fn ask(allocator: std.mem.Allocator, text: []const u8, defaultValue: []const
         std.debug.print("\x1b[33m? {s} (default {s}): \x1b[0m", .{ text, defaultValue });
     }
 
+    // TODO: 矢印キーのANSIエスケープシーケンスがそのまま入力されてしまう
     var buf: [100]u8 = undefined;
     const stdin = std.Io.File.stdin();
     var reader = stdin.reader(io, &buf);
