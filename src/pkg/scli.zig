@@ -132,3 +132,26 @@ pub const CLI = struct {
         return buf.toOwnedSlice(allocator);
     }
 };
+
+test "parse: bool flag" {
+    var cli = CLI.init(std.testing.allocator, "ttm", "desc");
+    defer cli.deinit();
+    const help = try cli.flagBool("-help", "show help");
+
+    const err = cli.parse(&[_][:0]const u8{ "ttm", "-help" });
+
+    try std.testing.expect(err == null);
+    try std.testing.expect(help.is);
+}
+
+test "parse: value flag" {
+    var cli = CLI.init(std.testing.allocator, "ttm", "desc");
+    defer cli.deinit();
+    const name = try cli.flagValue("-name", "name");
+
+    const err = cli.parse(&[_][:0]const u8{ "ttm", "-name", "foo" });
+
+    try std.testing.expect(err == null);
+    try std.testing.expect(name.is);
+    try std.testing.expectEqualStrings("foo", name.value.?);
+}
