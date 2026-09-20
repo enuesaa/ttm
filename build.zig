@@ -1,6 +1,5 @@
 const std = @import("std");
 
-// see https://ziglang.org/learn/build-system/
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -46,10 +45,17 @@ pub fn build(b: *std.Build) void {
     run_exe.step.dependOn(b.getInstallStep());
 
     // test
-    const test_mod = b.addTest(.{
-        .root_module = mod,
-    });
-    const run_test_mod = b.addRunArtifact(test_mod);
     const test_step = b.step("test", "Run tests");
-    test_step.dependOn(&run_test_mod.step);
+    const mod_test = b.addTest(.{ .root_module = mod });
+    const run_mod_test = b.addRunArtifact(mod_test);
+    test_step.dependOn(&run_mod_test.step);
+    const scli_test = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/pkg/scli.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    const run_scli_test = b.addRunArtifact(scli_test);
+    test_step.dependOn(&run_scli_test.step);
 }
