@@ -58,6 +58,10 @@ pub fn main(init: std.process.Init) !void {
         };
         return;
     }
+    if (scli.positionals.items.len > 1) {
+        std.debug.print("error: too many arguments: {s}\n", .{scli.positionals.items[1]});
+        return;
+    }
     if (scli.positionals.items.len == 1) {
         try ttm.cd(allocator, scli.positionals.items[0]);
         return;
