@@ -6,6 +6,7 @@ const toml = @import("toml");
 pub const Env = struct {
     key: []const u8,
     value: []const u8,
+    ask: ?[]const u8 = null,
     required: ?bool = null,
 };
 

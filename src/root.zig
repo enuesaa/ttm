@@ -100,13 +100,17 @@ pub fn last(allocator: std.mem.Allocator) !void {
 fn buildEnvVars(allocator: std.mem.Allocator, dest: ?pkgconfig.Path, envmap: *std.process.Environ.Map) !void {
     if (dest.?.envs) |evs| {
         for (evs) |ev| {
-            const askRet = try pkgprompt.ask(allocator, ev.key, ev.value);
-            defer allocator.free(askRet);
-            if (ev.required != null and ev.required.? == true and std.mem.eql(u8, askRet, "")) {
-                std.debug.print("error: {s} is required\n", .{ev.key});
-                return error.failedToBuildEnvVars;
+            if (ev.ask) |askText| {
+                const askRet = try pkgprompt.ask(allocator, askText, ev.value);
+                defer allocator.free(askRet);
+                if (ev.required != null and ev.required.? == true and std.mem.eql(u8, askRet, "")) {
+                    std.debug.print("error: {s} is required\n", .{ev.key});
+                    return error.failedToBuildEnvVars;
+                }
+                try envmap.put(ev.key, askRet);
+            } else {
+                try envmap.put(ev.key, ev.value);
             }
-            try envmap.put(ev.key, askRet);
         }
     }
 }
