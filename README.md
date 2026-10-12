@@ -14,7 +14,6 @@ Flags:
   -help    	show help
   -version  show version
   -edit    	edit ttm config file
-  -l, -list	list directories to move
   -history 	choose a directory from history
 ```
 
@@ -22,12 +21,16 @@ Flags:
 
 ```toml
 [[paths]]
-name = "default"
-path = "."
-
-[[paths]]
 name = ".."
 path = ".."
+
+[[paths]]
+name = "files"
+path = "~"
+command = """
+echo "list files in ~"
+ls -a
+"""
 ```
 
 ## feature plans

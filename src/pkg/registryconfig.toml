@@ -1,8 +1,4 @@
 [[paths]]
-name = "default"
-path = "."
-
-[[paths]]
 name = ".."
 path = ".."
 

@@ -138,10 +138,6 @@ fn recordHistory(allocator: std.mem.Allocator, path: []const u8) void {
     };
 }
 
-test {
-    _ = pkghistory;
-}
-
 fn buildEnvVars(allocator: std.mem.Allocator, dest: ?pkgconfig.Path, envmap: *std.process.Environ.Map) !void {
     if (dest.?.envs) |evs| {
         for (evs) |ev| {
@@ -158,4 +154,8 @@ fn buildEnvVars(allocator: std.mem.Allocator, dest: ?pkgconfig.Path, envmap: *st
             }
         }
     }
+}
+
+test {
+    _ = pkghistory;
 }

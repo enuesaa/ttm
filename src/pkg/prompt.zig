@@ -31,7 +31,7 @@ pub fn select(options: []const []const u8) !?usize {
 }
 
 fn drawOptions(options: []const []const u8, selected: usize) void {
-    std.debug.print("\x1b[?7l\r\x1b[2K? Select directory\r\n", .{});
+    std.debug.print("\x1b[?7l\r\x1b[2K\x1b[90m? Select directory\x1b[0m\r\n", .{});
     for (options, 0..) |option, i| {
         std.debug.print("\x1b[2K{s}", .{if (i == selected) "\x1b[36m> " else "  "});
         for (option) |byte| {
