@@ -6,7 +6,7 @@ const pkgshell = @import("pkg/shell.zig");
 const pkgdir = @import("pkg/dir.zig");
 const pkgenv = @import("pkg/env.zig");
 const pkgprompt = @import("pkg/prompt.zig");
-const pkgexpsessionmark = @import("pkg/expsessionmark.zig");
+const pkghistory = @import("pkg/history.zig");
 
 pub fn initialize(envmap: *std.process.Environ.Map, io: std.Io) void {
     pkgenv.envMap = envmap;
@@ -42,6 +42,7 @@ pub fn edit(allocator: std.mem.Allocator) !void {
 }
 
 pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
+    const io = try pkgenv.getIo();
     var envmap = try pkgenv.cloneEnvMap(allocator);
     defer envmap.deinit();
     var parsed = try pkgconfig.get(allocator);
@@ -60,6 +61,7 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     const destpath = try pkgdir.abs(allocator, dest.?.path);
     defer allocator.free(destpath);
     const workdir = try pkgdir.open(destpath);
+    defer workdir.close(io);
     if (dest.?.onBeforeCommand) |onBeforeCommand| {
         pkglog.infoln("* {s}", .{onBeforeCommand});
         try pkgshell.start(allocator, workdir, onBeforeCommand, &envmap);
@@ -68,9 +70,8 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
         pkglog.infoln("* {s}", .{cmd});
         pkgshell.hookCancel();
     }
-    pkgexpsessionmark.create(allocator, destpath) catch {};
+    recordHistory(allocator, destpath);
     try pkgshell.start(allocator, workdir, dest.?.command, &envmap);
-    pkgexpsessionmark.delete(allocator) catch {};
 
     if (dest.?.onAfterCommand) |onAfterCommand| {
         pkglog.infoln("* {s}", .{onAfterCommand});
@@ -87,14 +88,38 @@ pub fn ls(allocator: std.mem.Allocator) !void {
     try pkgconfig.listup(allocator, parsed.config);
 }
 
-// experimental
-pub fn last(allocator: std.mem.Allocator) !void {
+pub fn history(allocator: std.mem.Allocator) !void {
+    const io = try pkgenv.getIo();
+    const entries = pkghistory.load(allocator) catch |err| {
+        std.debug.print("error: failed to read history: {}\n", .{err});
+        return;
+    };
+    defer entries.deinit();
+    if (entries.value.len == 0) {
+        std.debug.print("No directory history yet.\n", .{});
+        return;
+    }
+    const selected = try pkgprompt.select(entries.value) orelse return;
+    const destpath = entries.value[selected];
+    const workdir = pkgdir.open(destpath) catch |err| {
+        std.debug.print("error: cannot open directory {s}: {}\n", .{ destpath, err });
+        return;
+    };
+    defer workdir.close(io);
     var envmap = try pkgenv.cloneEnvMap(allocator);
     defer envmap.deinit();
-    const destpath = try pkgexpsessionmark.get(allocator);
-    defer allocator.free(destpath);
-    const workdir = try pkgdir.open(destpath);
+    recordHistory(allocator, destpath);
     try pkgshell.start(allocator, workdir, null, &envmap);
+}
+
+fn recordHistory(allocator: std.mem.Allocator, path: []const u8) void {
+    pkghistory.record(allocator, path) catch |err| {
+        std.debug.print("warning: failed to save history: {}\n", .{err});
+    };
+}
+
+test {
+    _ = pkghistory;
 }
 
 fn buildEnvVars(allocator: std.mem.Allocator, dest: ?pkgconfig.Path, envmap: *std.process.Environ.Map) !void {

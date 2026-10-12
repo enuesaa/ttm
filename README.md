@@ -15,7 +15,7 @@ Flags:
   -version  show version
   -edit    	edit ttm config file
   -l, -list	list directories to move
-  -last    	move to the last opened directory
+  -history 	choose a directory from history
 ```
 
 設定ファイル
@@ -46,5 +46,3 @@ path = ".."
 ~/tmp
 ➜ compdef _foo_completion foo
 ```
-
-- history
