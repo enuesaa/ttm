@@ -2,7 +2,7 @@ const std = @import("std");
 const pkgenv = @import("env.zig");
 
 pub fn start(_: std.mem.Allocator, workdir: std.Io.Dir, command: ?[]const u8, envvars: *std.process.Environ.Map) !void {
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
 
     // change background color
     std.debug.print("\x1b]11;#2b2b1a\x07", .{});

@@ -70,7 +70,7 @@ fn readKey(fd: std.posix.fd_t) !Key {
 }
 
 pub fn ask(allocator: std.mem.Allocator, text: []const u8, defaultValue: []const u8) ![]u8 {
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
     if (defaultValue.len == 0) {
         std.debug.print("\x1b[33m? {s}: \x1b[0m", .{text});
     } else {

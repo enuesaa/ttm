@@ -42,7 +42,7 @@ pub fn edit(allocator: std.mem.Allocator) !void {
 }
 
 pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
     var envmap = try pkgenv.cloneEnvMap(allocator);
     defer envmap.deinit();
     var parsed = try pkgconfig.get(allocator);
@@ -103,7 +103,7 @@ pub fn pick(allocator: std.mem.Allocator) !void {
 }
 
 pub fn history(allocator: std.mem.Allocator) !void {
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
     const entries = pkghistory.load(allocator) catch |err| {
         std.debug.print("error: failed to read history: {}\n", .{err});
         return;

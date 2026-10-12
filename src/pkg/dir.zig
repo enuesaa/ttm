@@ -2,7 +2,7 @@ const std = @import("std");
 const pkgenv = @import("env.zig");
 
 pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
     if (std.mem.startsWith(u8, path, "~")) {
         const homeDir = try pkgenv.getHomeDir(allocator);
         defer allocator.free(homeDir);
@@ -23,12 +23,12 @@ pub fn tilde(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
 }
 
 pub fn open(path: []const u8) !std.Io.Dir {
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
     return try std.Io.Dir.openDirAbsolute(io, path, .{});
 }
 
 pub fn exists(path: []const u8) !bool {
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
     std.Io.Dir.accessAbsolute(io, path, .{}) catch {
         return false;
     };
@@ -36,6 +36,6 @@ pub fn exists(path: []const u8) !bool {
 }
 
 pub fn mkdir(path: []const u8) !void {
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
     try std.Io.Dir.createDirAbsolute(io, path, .default_dir);
 }

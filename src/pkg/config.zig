@@ -43,7 +43,7 @@ pub const Parsed = struct {
 };
 
 pub fn get(allocator: std.mem.Allocator) !Parsed {
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
     const path = try pkgregistry.getConfigPath(allocator);
     defer allocator.free(path);
     const raw = try std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .unlimited);

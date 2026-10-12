@@ -12,7 +12,7 @@ fn getPath(allocator: std.mem.Allocator) ![]u8 {
 }
 
 pub fn load(allocator: std.mem.Allocator) !std.json.Parsed(Entries) {
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
     const path = try getPath(allocator);
     defer allocator.free(path);
     const raw = std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .unlimited) catch |err| switch (err) {
@@ -51,7 +51,7 @@ pub fn record(allocator: std.mem.Allocator, path: []const u8) !void {
     defer allocator.free(entries);
     const raw = try std.json.Stringify.valueAlloc(allocator, entries, .{});
     defer allocator.free(raw);
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
     const history_path = try getPath(allocator);
     defer allocator.free(history_path);
     var file = try std.Io.Dir.cwd().createFileAtomic(io, history_path, .{ .replace = true });

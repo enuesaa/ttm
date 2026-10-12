@@ -34,7 +34,7 @@ pub fn isConfigExist(allocator: std.mem.Allocator) !bool {
 }
 
 pub fn createInitialConfig(allocator: std.mem.Allocator) !void {
-    const io = try pkgenv.getIo();
+    const io = pkgenv.io;
     const configPath = try getConfigPath(allocator);
     defer allocator.free(configPath);
     const file = try std.Io.Dir.cwd().createFile(io, configPath, .{});
