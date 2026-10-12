@@ -32,20 +32,3 @@ echo "list files in ~"
 ls -a
 """
 ```
-
-## feature plans
-- completion
-```bash
-➜ _foo_completion() {
-  local -a subcmds
-  subcmds=(
-    start
-    stop
-    restart
-    status
-  )
-  compadd -- $subcmds
-}
-~/tmp
-➜ compdef _foo_completion foo
-```
