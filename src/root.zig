@@ -113,7 +113,13 @@ pub fn history(allocator: std.mem.Allocator) !void {
         std.debug.print("No directory history yet.\n", .{});
         return;
     }
-    const selected = try pkgprompt.select(entries.value) orelse return;
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+    const labels = try arena.allocator().alloc([]const u8, entries.value.len);
+    for (entries.value, labels) |path, *label| {
+        label.* = try pkgdir.tilde(arena.allocator(), path);
+    }
+    const selected = try pkgprompt.select(labels) orelse return;
     const destpath = entries.value[selected];
     const workdir = pkgdir.open(destpath) catch |err| {
         std.debug.print("error: cannot open directory {s}: {}\n", .{ destpath, err });

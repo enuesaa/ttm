@@ -13,6 +13,15 @@ pub fn abs(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
     return try allocator.dupe(u8, buf[0..n]);
 }
 
+pub fn tilde(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
+    const homeDir = try pkgenv.getHomeDir(allocator);
+    defer allocator.free(homeDir);
+    if (std.mem.startsWith(u8, path, homeDir) and (path.len == homeDir.len or path[homeDir.len] == '/')) {
+        return try std.mem.concat(allocator, u8, &.{ "~", path[homeDir.len..] });
+    }
+    return try allocator.dupe(u8, path);
+}
+
 pub fn open(path: []const u8) !std.Io.Dir {
     const io = try pkgenv.getIo();
     return try std.Io.Dir.openDirAbsolute(io, path, .{});
