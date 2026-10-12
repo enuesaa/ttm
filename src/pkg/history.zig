@@ -25,21 +25,13 @@ pub fn load(allocator: std.mem.Allocator) !std.json.Parsed(Entries) {
     return parsed;
 }
 
-// The returned list borrows its path strings from the arguments.
 fn prepend(allocator: std.mem.Allocator, previous: Entries, path: []const u8) ![][]const u8 {
     var entries: std.ArrayList([]const u8) = .empty;
     errdefer entries.deinit(allocator);
     try entries.append(allocator, path);
     for (previous) |entry| {
         if (entries.items.len == max_entries) break;
-        var duplicate = false;
-        for (entries.items) |existing| {
-            if (std.mem.eql(u8, existing, entry)) {
-                duplicate = true;
-                break;
-            }
-        }
-        if (!duplicate) try entries.append(allocator, entry);
+        if (!std.mem.eql(u8, entry, path)) try entries.append(allocator, entry);
     }
     return entries.toOwnedSlice(allocator);
 }
