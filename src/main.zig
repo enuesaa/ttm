@@ -23,8 +23,6 @@ pub fn main(init: std.process.Init) !void {
     const helpFlag = try scli.flagBool("-help", "show help");
     const versionFlag = try scli.flagBool("-version", "show version");
     const editFlag = try scli.flagBool("-edit", "edit ttm config file");
-    const lsFlag = try scli.flagBool("-list", "list directories to move");
-    lsFlag.alias = "-l";
     const historyFlag = try scli.flagBool("-history", "choose a directory from history");
 
     const err = scli.parse(args);
@@ -47,10 +45,6 @@ pub fn main(init: std.process.Init) !void {
         try ttm.edit(allocator);
         return;
     }
-    if (lsFlag.is) {
-        try ttm.ls(allocator);
-        return;
-    }
     if (historyFlag.is) {
         try ttm.history(allocator);
         return;
@@ -63,5 +57,5 @@ pub fn main(init: std.process.Init) !void {
         try ttm.cd(allocator, scli.positionals.items[0]);
         return;
     }
-    try ttm.cd(allocator, "default");
+    try ttm.pick(allocator);
 }

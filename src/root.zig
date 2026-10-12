@@ -79,13 +79,27 @@ pub fn cd(allocator: std.mem.Allocator, cliTo: []const u8) !void {
     }
 }
 
-pub fn ls(allocator: std.mem.Allocator) !void {
-    var parsed = pkgconfig.get(allocator) catch |err| {
-        std.debug.print("failed to get config file because the error: {}\n", .{err});
-        return;
-    };
+pub fn pick(allocator: std.mem.Allocator) !void {
+    var parsed = try pkgconfig.get(allocator);
     defer parsed.deinit();
-    try pkgconfig.listup(allocator, parsed.config);
+    const paths = parsed.config.paths;
+
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    var maxName: usize = 0;
+    for (paths) |p| maxName = @max(maxName, p.name.len);
+    const labels = try a.alloc([]const u8, paths.len);
+    for (paths, labels) |p, *label| {
+        var buf = std.array_list.Managed(u8).init(a);
+        try buf.appendSlice(p.name);
+        try buf.appendNTimes(' ', maxName - p.name.len + 2);
+        try buf.appendSlice(p.path);
+        label.* = buf.items;
+    }
+    const selected = try pkgprompt.select(labels) orelse return;
+    try cd(allocator, paths[selected].name);
 }
 
 pub fn history(allocator: std.mem.Allocator) !void {
