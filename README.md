@@ -17,7 +17,8 @@ Flags:
   -history 	choose a directory from history
 ```
 
-設定ファイル
+## Example
+Configuration file
 
 ```toml
 [[paths]]

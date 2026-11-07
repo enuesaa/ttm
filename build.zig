@@ -31,7 +31,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
     const options = b.addOptions();
-    options.addOption([]const u8, "version", "0.0.20");
+    options.addOption([]const u8, "version", "0.0.21");
     exe.root_module.addOptions("config", options);
     b.installArtifact(exe);
 

@@ -1,6 +1,6 @@
 .{
     .name = .ttm,
-    .version = "0.0.20",
+    .version = "0.0.21",
     .fingerprint = 0xd4e9b88929b7e884,
     .minimum_zig_version = "0.17.0",
     .dependencies = .{

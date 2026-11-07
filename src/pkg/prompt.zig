@@ -8,8 +8,8 @@ pub fn select(options: []const []const u8) !?usize {
     raw.lflag.ICANON = false;
     raw.lflag.ECHO = false;
     raw.lflag.ISIG = false;
-    raw.cc[@intFromEnum(std.posix.V.MIN)] = 1;
-    raw.cc[@intFromEnum(std.posix.V.TIME)] = 0;
+    raw.cc[@backingInt(std.posix.V.MIN)] = 1;
+    raw.cc[@backingInt(std.posix.V.TIME)] = 0;
     try std.posix.tcsetattr(fd, .NOW, raw);
     defer std.posix.tcsetattr(fd, .NOW, original) catch {};
 
