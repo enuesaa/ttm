@@ -92,10 +92,10 @@ pub fn pick(allocator: std.mem.Allocator) !void {
     for (paths) |p| maxName = @max(maxName, p.name.len);
     const labels = try a.alloc([]const u8, paths.len);
     for (paths, labels) |p, *label| {
-        var buf = std.array_list.Managed(u8).init(a);
-        try buf.appendSlice(p.name);
-        try buf.appendNTimes(' ', maxName - p.name.len + 2);
-        try buf.appendSlice(p.path);
+        var buf: std.ArrayList(u8) = .empty;
+        try buf.appendSlice(a, p.name);
+        try buf.appendNTimes(a, ' ', maxName - p.name.len + 2);
+        try buf.appendSlice(a, p.path);
         label.* = buf.items;
     }
     const selected = try pkgprompt.select(labels) orelse return;
