@@ -36,7 +36,7 @@ pub fn edit(allocator: std.mem.Allocator) !void {
     const homedir = try pkgenv.getHomeDir(allocator);
     defer allocator.free(homedir);
     const workdir = try pkgdir.open(homedir);
-    const command = try std.fmt.allocPrint(allocator, "{s} {s}", .{ editor, configPath });
+    const command = try allocator.print("{s} {s}", .{ editor, configPath });
     defer allocator.free(command);
     try pkgshell.start(allocator, workdir, command, &envmap);
 }
