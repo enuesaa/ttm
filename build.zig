@@ -37,9 +37,7 @@ pub fn build(b: *std.Build) void {
 
     // run
     const run_exe = b.addRunArtifact(exe);
-    if (b.args) |args| {
-        run_exe.addArgs(args);
-    }
+    run_exe.addPassthruArgs();
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_exe.step);
     run_exe.step.dependOn(b.getInstallStep());
