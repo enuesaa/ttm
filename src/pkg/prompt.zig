@@ -1,8 +1,6 @@
 const std = @import("std");
-const pkgenv = @import("env.zig");
 
-pub fn select(options: []const []const u8) !?usize {
-    const fd = std.Io.File.stdin().handle;
+fn rawMode(fd: std.posix.fd_t) !std.posix.termios {
     const original = try std.posix.tcgetattr(fd);
     var raw = original;
     raw.lflag.ICANON = false;
@@ -11,6 +9,12 @@ pub fn select(options: []const []const u8) !?usize {
     raw.cc[@backingInt(std.posix.V.MIN)] = 1;
     raw.cc[@backingInt(std.posix.V.TIME)] = 0;
     try std.posix.tcsetattr(fd, .NOW, raw);
+    return original;
+}
+
+pub fn select(options: []const []const u8) !?usize {
+    const fd = std.Io.File.stdin().handle;
+    const original = try rawMode(fd);
     defer std.posix.tcsetattr(fd, .NOW, original) catch {};
 
     for (0..options.len + 1) |_| std.debug.print("\n", .{});
@@ -69,22 +73,62 @@ fn readKey(fd: std.posix.fd_t) !Key {
     }
 }
 
+fn moveBack(n: usize) void {
+    if (n > 0) std.debug.print("\x1b[{d}D", .{n});
+}
+
 pub fn ask(allocator: std.mem.Allocator, text: []const u8, defaultValue: []const u8) ![]u8 {
-    const io = pkgenv.io;
     if (defaultValue.len == 0) {
         std.debug.print("\x1b[33m? {s}: \x1b[0m", .{text});
     } else {
         std.debug.print("\x1b[33m? {s} (default {s}): \x1b[0m", .{ text, defaultValue });
     }
 
-    // TODO: 矢印キーのANSIエスケープシーケンスがそのまま入力されてしまう
-    var buf: [100]u8 = undefined;
-    const stdin = std.Io.File.stdin();
-    var reader = stdin.reader(io, &buf);
+    const fd = std.Io.File.stdin().handle;
+    const original = try rawMode(fd);
+    defer std.posix.tcsetattr(fd, .NOW, original) catch {};
 
-    const line = reader.interface.takeDelimiterExclusive('\n') catch |err| switch (err) {
-        error.EndOfStream => "",
-        else => return err,
-    };
-    return allocator.dupe(u8, if (line.len == 0) defaultValue else line);
+    var line: std.ArrayList(u8) = .empty;
+    defer line.deinit(allocator);
+    var cur: usize = 0;
+
+    while (try readByte(fd, -1)) |byte| {
+        switch (byte) {
+            '\n', '\r' => break,
+            3, 4 => return error.Canceled,
+            0x7f, 8 => if (cur > 0) {
+                cur -= 1;
+                _ = line.orderedRemove(cur);
+                std.debug.print("\x08{s} ", .{line.items[cur..]});
+                moveBack(line.items.len - cur + 1);
+            },
+            0x1b => {
+                const b1 = try readByte(fd, 50) orelse continue;
+                if (b1 != '[' and b1 != 'O') continue;
+                var final: u8 = 0;
+                while (try readByte(fd, 50)) |c| {
+                    if (c >= 0x40 and c <= 0x7e) {
+                        final = c;
+                        break;
+                    }
+                }
+                if (final == 'D' and cur > 0) {
+                    cur -= 1;
+                    std.debug.print("\x1b[D", .{});
+                } else if (final == 'C' and cur < line.items.len) {
+                    cur += 1;
+                    std.debug.print("\x1b[C", .{});
+                }
+            },
+            else => if (byte >= 0x20) {
+                try line.insert(allocator, cur, byte);
+                cur += 1;
+                std.debug.print("{s}", .{line.items[cur - 1 ..]});
+                moveBack(line.items.len - cur);
+            },
+        }
+    }
+    std.debug.print("\r\n", .{});
+
+    return allocator.dupe(u8, if (line.items.len == 0) defaultValue else line.items);
 }
