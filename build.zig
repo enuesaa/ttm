@@ -1,4 +1,5 @@
 const std = @import("std");
+const zon = @import("build.zig.zon");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -31,7 +32,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
     const options = b.addOptions();
-    options.addOption([]const u8, "version", "0.0.21");
+    options.addOption([]const u8, "version", zon.version);
     exe.root_module.addOptions("config", options);
     b.installArtifact(exe);
 
