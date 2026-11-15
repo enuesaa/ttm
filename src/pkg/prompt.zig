@@ -73,10 +73,6 @@ fn readKey(fd: std.posix.fd_t) !Key {
     }
 }
 
-fn moveBack(n: usize) void {
-    if (n > 0) std.debug.print("\x1b[{d}D", .{n});
-}
-
 pub fn ask(allocator: std.mem.Allocator, text: []const u8, defaultValue: []const u8) ![]u8 {
     if (defaultValue.len == 0) {
         std.debug.print("\x1b[33m? {s}: \x1b[0m", .{text});
@@ -99,19 +95,13 @@ pub fn ask(allocator: std.mem.Allocator, text: []const u8, defaultValue: []const
             0x7f, 8 => if (cur > 0) {
                 cur -= 1;
                 _ = line.orderedRemove(cur);
-                std.debug.print("\x08{s} ", .{line.items[cur..]});
-                moveBack(line.items.len - cur + 1);
+                std.debug.print("\x08{s} \x1b[{d}D", .{ line.items[cur..], line.items.len - cur + 1 });
             },
             0x1b => {
-                const b1 = try readByte(fd, 50) orelse continue;
-                if (b1 != '[' and b1 != 'O') continue;
-                var final: u8 = 0;
-                while (try readByte(fd, 50)) |c| {
-                    if (c >= 0x40 and c <= 0x7e) {
-                        final = c;
-                        break;
-                    }
-                }
+                _ = try readByte(fd, 50) orelse continue; // '[' or 'O'
+                const final = while (try readByte(fd, 50)) |c| {
+                    if (c >= 0x40 and c <= 0x7e) break c;
+                } else 0;
                 if (final == 'D' and cur > 0) {
                     cur -= 1;
                     std.debug.print("\x1b[D", .{});
@@ -123,8 +113,7 @@ pub fn ask(allocator: std.mem.Allocator, text: []const u8, defaultValue: []const
             else => if (byte >= 0x20) {
                 try line.insert(allocator, cur, byte);
                 cur += 1;
-                std.debug.print("{s}", .{line.items[cur - 1 ..]});
-                moveBack(line.items.len - cur);
+                std.debug.print("{s} \x1b[{d}D", .{ line.items[cur - 1 ..], line.items.len - cur + 1 });
             },
         }
     }
